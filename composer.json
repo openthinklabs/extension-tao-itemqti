@@ -1,5 +1,5 @@
 {
-    "name": "oat-sa/extension-tao-itemqti",
+    "name": "openthinklabs/extension-tao-itemqti",
     "description": "extension to create QTI items",
     "type": "tao-extension",
     "authors": [
