@@ -60,14 +60,32 @@
         }
     },
     "minimum-stability": "dev",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "git@github.com:openthinklabs/oatbox-extension-installer.git"
+        },
+        {
+            "type": "vcs",
+            "url": "git@github.com:openthinklabs/generis.git"
+        },        
+        {
+            "type": "vcs",
+            "url": "git@github.com:openthinklabs/tao-core.git"
+        },                
+        {
+            "type": "vcs",
+            "url": "git@github.com:openthinklabs/extension-tao-backoffice.git"
+        } 
+    ],	     
     "require": {
         "ext-simplexml": "*",
-        "oat-sa/lib-tao-qti": "7.3.1",
-        "oat-sa/oatbox-extension-installer": "~1.1||dev-master",
+        "openthinklabs/lib-tao-qti": "7.3.1.1",
+        "openthinklabs/oatbox-extension-installer": "~1.1||dev-master",
         "naneau/semver": "~0.0.7",
-        "oat-sa/generis" : ">=14.4.0",
-        "oat-sa/tao-core" : ">=v48.66.3",
-        "oat-sa/extension-tao-item" : ">=11.20.1"
+        "openthinklabs/generis" : ">=14.4.0",
+        "openthinklabs/tao-core" : "48.74.0.1",
+        "openthinklabs/extension-tao-item" : ">=11.20.1"
     },
     "autoload": {
         "psr-4": {
