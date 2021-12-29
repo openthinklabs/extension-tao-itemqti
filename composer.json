@@ -79,11 +79,12 @@
         } 
     ],	     
     "require": {
+        "ext-simplexml": "*",
         "openthinklabs/lib-tao-qti": "7.3.1.1",
         "openthinklabs/oatbox-extension-installer": "~1.1||dev-master",
         "naneau/semver": "~0.0.7",
         "openthinklabs/generis" : ">=14.4.0",
-        "openthinklabs/tao-core" : ">=v48.66.3",
+        "openthinklabs/tao-core" : "48.74.0.1",
         "openthinklabs/extension-tao-item" : ">=11.20.1"
     },
     "autoload": {
