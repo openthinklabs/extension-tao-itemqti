@@ -80,7 +80,7 @@
     ],	     
     "require": {
         "ext-simplexml": "*",
-        "openthinklabs/lib-tao-qti": "7.3.1.1",
+        "openthinklabs/lib-tao-qti": "7.3.1.2",
         "openthinklabs/oatbox-extension-installer": "~1.1||dev-master",
         "naneau/semver": "~0.0.7",
         "openthinklabs/generis" : ">=14.4.0",
