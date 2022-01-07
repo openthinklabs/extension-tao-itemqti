@@ -76,20 +76,57 @@
         {
             "type": "vcs",
             "url": "git@github.com:openthinklabs/extension-tao-backoffice.git"
-        } 
+        },
+        {
+            "type": "vcs",
+            "url": "git@github.com:openthinklabs/lib-generis-search.git"
+        },
+        {
+            "type": "vcs",
+            "url": "git@github.com:openthinklabs/jig.git"
+        },
+        {
+            "type": "vcs",
+            "url": "git@github.com:openthinklabs/lib-tao-qti.git"
+        },
+        {
+            "type": "vcs",
+            "url": "git@github.com:openthinklabs/extension-tao-item.git"
+        },
+        {
+            "type": "vcs",
+            "url": "git@github.com:openthinklabs/qti-sdk.git"
+        },
+        {
+            "type": "vcs",
+            "url": "git@github.com:openthinklabs/composer-npm-bridge.git"
+        },
+        {
+            "type": "vcs",
+            "url": "git@github.com:openthinklabs/lib-beeme.git"
+        }                                                        
     ],	     
     "require": {
         "ext-simplexml": "*",
         "openthinklabs/lib-tao-qti": "7.3.1.2",
         "openthinklabs/oatbox-extension-installer": "~1.1||dev-master",
         "naneau/semver": "~0.0.7",
-        "openthinklabs/generis" : ">=14.4.0",
-        "openthinklabs/tao-core" : ">=48.75.0",
+        "openthinklabs/generis" : "15.13.1.4",
+        "openthinklabs/tao-core" : "48.75.0.6",
         "openthinklabs/extension-tao-item" : ">=11.20.1"
     },
     "autoload": {
         "psr-4": {
             "oat\\taoQtiItem\\": ""
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "oat-sa/composer-npm-bridge": true,
+            "composer/package-versions-deprecated": true,
+            "oat-sa/oatbox-extension-installer": true,
+            "openthinklabs/oatbox-extension-installer": true,
+            "openthinklabs/composer-npm-bridge": true
         }
     }
 }
