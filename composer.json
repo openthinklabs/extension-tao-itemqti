@@ -107,7 +107,7 @@
         }                                                        
     ],	     
     "require": {
-        "openthinklabs/lib-tao-qti": "7.3.1.3",
+        "openthinklabs/lib-tao-qti": "~7.3.1.4",
         "openthinklabs/oatbox-extension-installer": "1.2.2",
         "naneau/semver": "~0.0.7",
         "openthinklabs/generis" : "15.11.0.4",
