@@ -110,8 +110,8 @@
         "openthinklabs/lib-tao-qti": "~7.3.1.4",
         "openthinklabs/oatbox-extension-installer": "1.2.2",
         "naneau/semver": "~0.0.7",
-        "openthinklabs/generis" : "15.11.0.4",
-        "openthinklabs/tao-core" : "~48.66.1.4",
+        "openthinklabs/generis" : "~15.11.0.5",
+        "openthinklabs/tao-core" : "~48.66.1.8",
         "openthinklabs/extension-tao-item" : "~11.21.0.5"
     },
     "autoload": {
