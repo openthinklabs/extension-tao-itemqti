@@ -104,11 +104,15 @@
         {
             "type": "vcs",
             "url": "git@github.com:openthinklabs/lib-beeme.git"
-        }                                                        
+        },
+        {
+            "type": "vcs",
+            "url": "git@github.com:openthinklabs/lib-tao-dtms.git"
+        }                                                                                                                    
     ],	     
     "require": {
         "ext-simplexml": "*",
-        "openthinklabs/lib-tao-qti": "~7.3.1.4",
+        "openthinklabs/lib-tao-qti": "~7.3.1.5",
         "openthinklabs/oatbox-extension-installer": "1.2.2",
         "naneau/semver": "~0.0.7",
         "openthinklabs/generis" : "~15.19.2.1",
