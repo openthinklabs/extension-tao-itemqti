@@ -9,6 +9,7 @@
     },
     "dependencies": {
         "@oat-sa/tao-item-runner": "0.8.1",
-        "@oat-sa/tao-item-runner-qti": "1.1.8"
+        "@oat-sa/tao-item-runner-qti": "git+https://github.com/openthinklabs/tao-item-runner-qti-fe#v1.5.1.1" 
     }
 }
+
