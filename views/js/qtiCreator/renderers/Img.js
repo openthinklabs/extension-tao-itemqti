@@ -13,19 +13,42 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2014 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
+ * Copyright (c) 2014-2023 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
  */
 
 define([
     'lodash',
+    'context',
     'taoQtiItem/qtiCommonRenderer/renderers/Img',
-    'taoQtiItem/qtiCreator/widgets/static/img/Widget'
-], function(_, Renderer, Widget){
+    'taoQtiItem/qtiCreator/widgets/static/img/Widget',
+    'taoQtiItem/qtiCreator/widgets/static/figure/Widget',
+    'taoQtiItem/qtiCreator/model/Figure',
+    'taoQtiItem/qtiCreator/helper/findParentElement',
+    'taoQtiItem/qtiCreator/helper/elementSupport',
+], function (_, context, Renderer, Widget, FigureWidget, FigureModel, findParentElement, elementSupportHelper) {
     'use strict';
 
-    var CreatorImg = _.clone(Renderer);
+    const CreatorImg = _.clone(Renderer);
 
-    CreatorImg.render = function(img, options){
+    const DISABLE_FIGURE_WIDGET = context.featureFlags && context.featureFlags.FEATURE_FLAG_DISABLE_FIGURE_WIDGET;
+
+    CreatorImg.render = function (img, options) {
+        const $container = Renderer.getContainer(img);
+        if (
+            $container.parent('figure').length ||
+            (!DISABLE_FIGURE_WIDGET && $container.parent('span').length && $container.parent('span').data('figure'))
+        ) {
+            // don't create widget if has figure parent
+            if (
+                !DISABLE_FIGURE_WIDGET &&
+                !$container.parent('figure').length &&
+                $container.siblings('figcaption').length
+            ) {
+                $container.siblings('figcaption').remove();
+            }
+
+            return CreatorImg;
+        }
 
         options = options || {};
         options.baseUrl = this.getOption('baseUrl');
@@ -35,12 +58,27 @@ define([
         options.assetManager = this.getAssetManager();
         options.state = img.metaData.widget && img.metaData.widget.getCurrentState().name;
 
-        Widget.build(
-            img,
-            Renderer.getContainer(img),
-            this.getOption('bodyElementOptionForm'),
-            options
-        );
+        if (
+            !DISABLE_FIGURE_WIDGET &&
+            elementSupportHelper.isFigureSupportedInParent($container)
+        ) {
+            const parent = findParentElement(img.rootElement, img.serial);
+            parent.removeElement(img);
+            const figure = new FigureModel();
+            parent.setElement(figure);
+            const figureRenderer = parent.getRenderer();
+            if (figureRenderer) {
+                figure.setRenderer(figureRenderer);
+                figureRenderer.load(() => {
+                    $container.trigger('graphicInteraction.ready');
+                }, ['figure']);
+            }
+            figure.setElement(img);
+            const $wrap = $container.wrap(`<span data-serial="${figure.serial}">`).parent();
+            FigureWidget.build(figure, $wrap, this.getOption('bodyElementOptionForm'), options);
+        } else {
+            Widget.build(img, Renderer.getContainer(img), this.getOption('bodyElementOptionForm'), options);
+        }
     };
 
     return CreatorImg;

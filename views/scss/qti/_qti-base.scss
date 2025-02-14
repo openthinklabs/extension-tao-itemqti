@@ -122,6 +122,17 @@ $mainContainer : '.qti-item';
         &.highlighter-cursor {
             cursor: url("../img/qtiIconsPng/marker.png") 0 32, auto;
         }
+
+        hr {
+            border: none;
+            margin: 12px 0;
+            padding: 0;
+            height: 1px;
+            max-height: 1px;
+            border: none;
+            border-color: #8c8c8c;
+            border-top: solid 1px;
+        }
     }
 
     .interaction-cover{
@@ -195,10 +206,10 @@ $mainContainer : '.qti-item';
             padding-right: 3px;
             padding-left: 3px;
             &:after {
-                @extend .clearfix:after;
+                @extend %clearfix-after;
             }
             &:before {
-                @extend .clearfix:before;
+                @extend %clearfix-before;
             }
             & > li {
                 display: block;
@@ -298,7 +309,7 @@ $mainContainer : '.qti-item';
     @import "custom";
     @import "table";
     @import "tooltip";
-
+    @import "figure";
 }
 
 .tao-preview-scope{

@@ -19,7 +19,7 @@
     </span>
     <div>
         <label class="smaller-prompt">
-            <input type="radio" name="constraints" value="none" {{#equal constraints "none"}}checked{{/equal}}  for="constraints-none"/>
+            <input type="radio" name="constraints" value="none" {{#equal constraints "none"}}checked{{/equal}}  id="constraints-none"/>
             <span class="icon-radio"></span>
             <label for="constraints-none">{{__ 'None'}} </label>
         </label>
@@ -39,6 +39,7 @@
 </div>
 <div class="panel min-max-panel choice-min-max"></div>
 <hr/>
+{{#if enabledFeatures.allowElimination}}
 <div class="panel">
     <label>
         <input name="eliminable" type="checkbox" {{#if eliminable}}checked="checked"{{/if}}/>
@@ -50,6 +51,8 @@
         {{__ 'If this box is checked the student will be able to eliminate choices.'}}
     </span>
 </div>
+{{/if}}
+{{#if enabledFeatures.shuffleChoices}}
 <div class="panel">
     <label>
         <input name="shuffle" type="checkbox" {{#if shuffle}}checked="checked"{{/if}}/>
@@ -61,7 +64,11 @@
         {{__ 'If the shuffle attribute is true then the delivery engine will randomize the order in which the choices are initially presented. However each choice may be "shuffled" of "fixed" individually.'}}
     </span>
 </div>
+{{/if}}
+{{#if enabledFeatures.choiceOptionsAvailable}}
 <hr/>
+{{/if}}
+{{#if enabledFeatures.listStyle}}
 <div class="panel">
     <h3>{{__ "List Style"}}</h3>
     <span class="icon-help tooltipstered" data-tooltip="~ .tooltip-content" data-tooltip-theme="info"></span>
@@ -71,9 +78,9 @@
 
     <select data-list-style/>
 </div>
-
-
 <hr/>
+{{/if}}
+{{#if enabledFeatures.orientationAvailable}}
 <div class="panel">
     <h3>{{__ 'Orientation'}}</h3>
     <span class="icon-help tooltipstered" data-tooltip="~ .tooltip-content" data-tooltip-theme="info"></span>
@@ -94,3 +101,4 @@
         </label>
     </div>
 </div>
+{{/if}}

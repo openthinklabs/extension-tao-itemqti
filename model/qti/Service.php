@@ -24,6 +24,7 @@ namespace oat\taoQtiItem\model\qti;
 use common_exception_Error;
 use common_exception_NotFound;
 use oat\oatbox\filesystem\File;
+use oat\oatbox\filesystem\FilesystemException;
 use oat\taoQtiItem\model\qti\parser\XmlToItemParser;
 use tao_helpers_Uri;
 use common_exception_FileSystemError;
@@ -39,13 +40,12 @@ use oat\taoQtiItem\model\ItemModel;
 use oat\taoQtiItem\model\qti\exception\XIncludeException;
 use oat\taoQtiItem\model\qti\metadata\MetadataRegistry;
 use oat\taoQtiItem\model\qti\exception\ParsingException;
-use \core_kernel_classes_Resource;
-use \taoItems_models_classes_ItemsService;
-use \common_Logger;
-use \common_Exception;
-use \Exception;
+use core_kernel_classes_Resource;
+use taoItems_models_classes_ItemsService;
+use common_Logger;
+use common_Exception;
+use Exception;
 use oat\taoItems\model\media\ItemMediaResolver;
-use League\Flysystem\FileNotFoundException;
 
 /**
  * The QTI_Service gives you a central access to the managment methods of the
@@ -59,7 +59,7 @@ class Service extends ConfigurableService
     use EventManagerAwareTrait;
     use OntologyAwareTrait;
 
-    const QTI_ITEM_FILE = 'qti.xml';
+    public const QTI_ITEM_FILE = 'qti.xml';
 
     /**
      * Load a QTI_Item from an, RDF Item using the itemContent property of the
@@ -99,7 +99,7 @@ class Service extends ConfigurableService
             if (!$returnValue->getAttributeValue('xml:lang')) {
                 $returnValue->setAttribute('xml:lang', \common_session_SessionManager::getSession()->getDataLanguage());
             }
-        } catch (FileNotFoundException $e) {
+        } catch (FilesystemException $e) {
             // fail silently, since file might not have been created yet
             // $returnValue is then NULL.
             common_Logger::d('item(' . $item->getUri() . ') is empty, newly created?');
@@ -286,7 +286,9 @@ class Service extends ConfigurableService
             $newItemContentDirectoryName = tao_helpers_Uri::getUniqueId($item->getUri()) . '.' . uniqid();
             $propertyLanguages = $item->getUsedLanguages($itemContentProperty);
             foreach ($propertyLanguages as $language) {
-                $oldItemContentPropertyValues[$language] = (string) $item->getPropertyValuesByLg($itemContentProperty, $language)->get(0);
+                $oldItemContentPropertyValues[$language] = (string) $item
+                    ->getPropertyValuesByLg($itemContentProperty, $language)
+                    ->get(0);
                 $serial = $this->getNewSerializedItemContentDirectory($newItemContentDirectoryName, $language);
 
                 $item->editPropertyValueByLg($itemContentProperty, $serial, $language);
@@ -313,7 +315,13 @@ class Service extends ConfigurableService
             }
         } catch (Exception $e) {
             $this->logError('Rollback item error: ' . $e->getMessage());
-            throw new common_Exception(sprintf('Cannot rollback item. Item uri - %s :: Backup folders - %s ', $item->getUri(), json_encode($backUpNames)));
+            throw new common_Exception(
+                sprintf(
+                    'Cannot rollback item. Item uri - %s :: Backup folders - %s ',
+                    $item->getUri(),
+                    json_encode($backUpNames)
+                )
+            );
         }
     }
 

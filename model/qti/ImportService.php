@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2016 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
+ * Copyright (c) 2016-2024 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
  *
  */
 
@@ -24,13 +24,13 @@ namespace oat\taoQtiItem\model\qti;
 use common_exception_Error;
 use common_exception_UserReadableException;
 use common_Logger;
-use common_report_Report;
 use core_kernel_classes_Class;
 use core_kernel_classes_Resource;
 use DOMDocument;
 use Exception;
 use helpers_File;
 use oat\generis\model\OntologyAwareTrait;
+use oat\oatbox\reporting\Report;
 use oat\tao\model\TaoOntology;
 use oat\oatbox\mutex\LockTrait;
 use oat\taoItems\model\media\ItemMediaResolver;
@@ -44,13 +44,18 @@ use oat\taoQtiItem\model\qti\asset\handler\LocalAssetHandler;
 use oat\taoQtiItem\model\qti\asset\handler\PortableAssetHandler;
 use oat\taoQtiItem\model\qti\asset\handler\SharedStimulusAssetHandler;
 use oat\taoQtiItem\model\qti\asset\handler\StimulusHandler;
+use oat\taoQtiItem\model\qti\converter\ItemConverter;
 use oat\taoQtiItem\model\qti\event\UpdatedItemEventDispatcher;
 use oat\taoQtiItem\model\qti\exception\ExtractException;
 use oat\taoQtiItem\model\qti\exception\ParsingException;
 use oat\taoQtiItem\model\qti\exception\TemplateException;
 use oat\taoQtiItem\model\qti\metadata\importer\MetadataImporter;
+use oat\taoQtiItem\model\qti\metadata\importer\MetaMetadataImportMapper;
+use oat\taoQtiItem\model\qti\metadata\imsManifest\MetaMetadataExtractor;
 use oat\taoQtiItem\model\qti\metadata\MetadataGuardianResource;
 use oat\taoQtiItem\model\qti\metadata\MetadataService;
+use oat\taoQtiItem\model\qti\metadata\ontology\MappedMetadataInjector;
+use oat\taoQtiItem\model\qti\parser\UniqueNumericQtiIdentifierReplacer;
 use oat\taoQtiItem\model\qti\parser\ValidationException;
 use oat\taoQtiItem\model\event\ItemImported;
 use qtism\data\QtiComponentCollection;
@@ -79,20 +84,20 @@ class ImportService extends ConfigurableService
 
     use LockTrait;
 
-    const SERVICE_ID = 'taoQtiItem/ImportService';
+    public const SERVICE_ID = 'taoQtiItem/ImportService';
 
     /**
      * Checks that setOutcomeValue declared in the outcomeDeclaration
      */
-    const CONFIG_VALIDATE_RESPONSE_PROCESSING = 'validateResponseProcessing';
+    public const CONFIG_VALIDATE_RESPONSE_PROCESSING = 'validateResponseProcessing';
 
     /**
      * TTL of the item importing process
      * How long item will be locked while lock service automatically release the lock
      */
-    const OPTION_IMPORT_LOCK_TTL = 'importLockTtl';
+    public const OPTION_IMPORT_LOCK_TTL = 'importLockTtl';
 
-    const PROPERTY_QTI_ITEM_IDENTIFIER = 'http://www.tao.lu/Ontologies/TAOItem.rdf#QtiItemIdentifier';
+    public const PROPERTY_QTI_ITEM_IDENTIFIER = 'http://www.tao.lu/Ontologies/TAOItem.rdf#QtiItemIdentifier';
 
     /**
      * @return ImportService
@@ -114,7 +119,7 @@ class ImportService extends ConfigurableService
      * @param $qtiFile
      * @param core_kernel_classes_Class $itemClass
      * @param bool $validate
-     * @return common_report_Report
+     * @return Report
      * @throws \common_ext_ExtensionException
      * @throws common_exception_Error
      * @throws \common_Exception
@@ -122,15 +127,13 @@ class ImportService extends ConfigurableService
      */
     public function importQTIFile($qtiFile, core_kernel_classes_Class $itemClass, $validate = true)
     {
-        $report = null;
-
         try {
             $qtiModel = $this->createQtiItemModel($qtiFile, $validate);
             $rdfItem = $this->createRdfItem($itemClass, $qtiModel);
 
-            $report = \common_report_Report::createSuccess(__('The IMS QTI Item was successfully imported.'), $rdfItem);
+            $report = Report::createSuccess(__('The IMS QTI Item was successfully imported.'), $rdfItem);
         } catch (ValidationException $ve) {
-            $report = \common_report_Report::createFailure(__('The IMS QTI Item could not be imported.'));
+            $report = Report::createFailure(__('The IMS QTI Item could not be imported.'));
             $report->add($ve->getReport());
         }
 
@@ -176,12 +179,14 @@ class ImportService extends ConfigurableService
             throw new \common_Exception('Unable to save item');
         }
 
+
         return $rdfItem;
     }
 
     protected function createQtiItemModel($qtiFile, $validate = true)
     {
         $qtiXml = Authoring::sanitizeQtiXml($qtiFile);
+        $qtiXml = $this->replaceUniqueNumericQtiIdentifier($qtiXml);
         //validate the file to import
         $qtiParser = new Parser($qtiXml);
 
@@ -191,7 +196,9 @@ class ImportService extends ConfigurableService
             if (!$qtiParser->isValid()) {
                 $eStrs = [];
                 foreach ($qtiParser->getErrors() as $libXmlError) {
+                    // phpcs:disable Generic.Files.LineLength
                     $eStrs[] = __('QTI-XML error at line %1$d "%2$s".', $libXmlError['line'], str_replace('[LibXMLError] ', '', trim($libXmlError['message'])));
+                    // phpcs:enable Generic.Files.LineLength
                 }
 
                 // Make sure there are no duplicate...
@@ -227,9 +234,13 @@ class ImportService extends ConfigurableService
                 $eStrs = [];
                 foreach ($qtiManifestParser->getErrors() as $libXmlError) {
                     if (isset($libXmlError['line'])) {
+                        // phpcs:disable Generic.Files.LineLength
                         $error = __('XML error at line %1$d "%2$s".', $libXmlError['line'], str_replace('[LibXMLError] ', '', trim($libXmlError['message'])));
+                    // phpcs:enable Generic.Files.LineLength
                     } else {
+                        // phpcs:disable Generic.Files.LineLength
                         $error = __('XML error "%1$s".', str_replace('[LibXMLError] ', '', trim($libXmlError['message'])));
+                        // phpcs:enable Generic.Files.LineLength
                     }
                     $eStrs[] = $error;
                 }
@@ -256,7 +267,7 @@ class ImportService extends ConfigurableService
      * @param bool $enableMetadataValidators
      * @param bool $itemMustExist
      * @param bool $itemMustBeOverwritten
-     * @return common_report_Report
+     * @return Report
      * @throws Exception
      * @throws ExtractException
      * @throws ParsingException
@@ -274,7 +285,8 @@ class ImportService extends ConfigurableService
         $enableMetadataGuardians = true,
         $enableMetadataValidators = true,
         $itemMustExist = false,
-        $itemMustBeOverwritten = false
+        $itemMustBeOverwritten = false,
+        $importMetadataEnabled = false
     ) {
         $initialLogMsg = "Importing QTI Package with the following options:\n";
         $initialLogMsg .= '- Rollback On Warning: ' . json_encode($rollbackOnWarning) . "\n";
@@ -283,6 +295,7 @@ class ImportService extends ConfigurableService
         $initialLogMsg .= '- Enable Metadata Validators: ' . json_encode($enableMetadataValidators) . "\n";
         $initialLogMsg .= '- Item Must Exist: ' . json_encode($itemMustExist) . "\n";
         $initialLogMsg .= '- Item Must Be Overwritten: ' . json_encode($itemMustBeOverwritten) . "\n";
+        $initialLogMsg .= '- Import Metadata Enabled: ' . json_encode($importMetadataEnabled) . "\n";
         \common_Logger::d($initialLogMsg);
 
         //load and validate the package
@@ -301,7 +314,7 @@ class ImportService extends ConfigurableService
             throw new ExtractException();
         }
 
-        $report = new common_report_Report(common_report_Report::TYPE_SUCCESS, '');
+        $report = new Report(Report::TYPE_SUCCESS, '');
         $successItems = [];
         $allCreatedClasses = [];
         $overwrittenItems = [];
@@ -315,7 +328,32 @@ class ImportService extends ConfigurableService
             /** @var Resource[] $qtiItemResources */
             $qtiItemResources = $this->createQtiManifest($folder . 'imsmanifest.xml');
 
-            $metadataValues = $this->getMetadataImporter()->extract($domManifest);
+            if ($importMetadataEnabled) {
+                $metaMetadataValues = $this->getMetaMetadataExtractor()->extract($domManifest);
+                $mappedMetadataValues = $this->getMetaMetadataImportMapper()->mapMetaMetadataToProperties(
+                    $metaMetadataValues,
+                    $itemClass
+                );
+                $metadataValues = $this->getMetadataImporter()->extract($domManifest);
+                $notMatchingProperties = $this->checkMissingClassProperties(
+                    $metadataValues,
+                    $mappedMetadataValues['itemProperties']
+                );
+                if (!empty($notMatchingProperties)) {
+                    return Report::createError(
+                        sprintf(
+                            __('Target class is missing the following metadata properties: %s'),
+                            implode(', ', $notMatchingProperties)
+                        )
+                    );
+                }
+                if (empty($mappedMetadataValues)) {
+                    $mappedMetadataValues = $this->getMetaMetadataImportMapper()->mapMetadataToProperties(
+                        $metadataValues,
+                        $itemClass
+                    );
+                }
+            }
 
             $sharedFiles = [];
             $createdClasses = [];
@@ -327,13 +365,15 @@ class ImportService extends ConfigurableService
                     $itemClass,
                     $sharedFiles,
                     [],
-                    $metadataValues,
+                    $metadataValues ?? [],
                     $createdClasses,
                     $enableMetadataGuardians,
                     $enableMetadataValidators,
                     $itemMustExist,
                     $itemMustBeOverwritten,
-                    $overwrittenItems
+                    $overwrittenItems,
+                    isset($mappedMetadataValues['itemProperties']) ? $mappedMetadataValues['itemProperties'] : [],
+                    $importMetadataEnabled
                 );
 
                 $allCreatedClasses = array_merge($allCreatedClasses, $createdClasses);
@@ -347,13 +387,13 @@ class ImportService extends ConfigurableService
                 $report->add($itemReport);
             }
         } catch (ValidationException $ve) {
-            $validationReport = \common_report_Report::createFailure("The IMS Manifest file could not be validated");
+            $validationReport = Report::createFailure("The IMS Manifest file could not be validated");
             $validationReport->add($ve->getReport());
             $report->setMessage(__("No Items could be imported from the given IMS QTI package."));
-            $report->setType(common_report_Report::TYPE_ERROR);
+            $report->setType(Report::TYPE_ERROR);
             $report->add($validationReport);
         } catch (common_exception_UserReadableException $e) {
-            $report = new common_report_Report(common_report_Report::TYPE_ERROR, $e->getUserMessage());
+            $report = new Report(Report::TYPE_ERROR, $e->getUserMessage());
             $report->add($e);
         }
 
@@ -364,23 +404,23 @@ class ImportService extends ConfigurableService
             );
 
             if (count($successItems) !== $itemCount) {
-                $report->setType(common_report_Report::TYPE_WARNING);
+                $report->setType(Report::TYPE_WARNING);
             }
         } else {
             $report->setMessage(__('No Items could be imported from the given IMS QTI package.'));
-            $report->setType(common_report_Report::TYPE_ERROR);
+            $report->setType(Report::TYPE_ERROR);
         }
 
         if ($rollbackOnError === true) {
             if (
-                $report->getType() === common_report_Report::TYPE_ERROR || $report->contains(
-                    common_report_Report::TYPE_ERROR
+                $report->getType() === Report::TYPE_ERROR || $report->contains(
+                    Report::TYPE_ERROR
                 )
             ) {
                 $this->rollback($successItems, $report, $allCreatedClasses, $overwrittenItems);
             }
         } elseif ($rollbackOnWarning === true) {
-            if ($report->contains(common_report_Report::TYPE_WARNING)) {
+            if ($report->contains(Report::TYPE_WARNING)) {
                 $this->rollback($successItems, $report, $allCreatedClasses, $overwrittenItems);
             }
         }
@@ -407,7 +447,7 @@ class ImportService extends ConfigurableService
     {
         $timeElapsedSecs = microtime(true) - $startImportTime;
         if ($timeElapsedSecs > $this->getOption(self::OPTION_IMPORT_LOCK_TTL)) {
-            common_Logger::w('Items lock was released before item '.$itemId.' import finished.');
+            common_Logger::w('Items lock was released before item ' . $itemId . ' import finished.');
         }
     }
 
@@ -424,7 +464,7 @@ class ImportService extends ConfigurableService
      * @param bool $itemMustExist
      * @param bool $itemMustBeOverwritten
      * @param array $overwrittenItems
-     * @return common_report_Report
+     * @return Report
      * @throws common_exception_Error
      */
     public function importQtiItem(
@@ -439,17 +479,19 @@ class ImportService extends ConfigurableService
         $enableMetadataValidators = true,
         $itemMustExist = false,
         $itemMustBeOverwritten = false,
-        &$overwrittenItems = []
+        &$overwrittenItems = [],
+        $metaMedataValues = [],
+        $importMetadataEnabled = false
     ) {
         // if report can't be finished
-        $report = common_report_Report::createFailure(
+        $report = Report::createError(
             __('IMS QTI Item referenced as "%s" cannot be imported.', $qtiItemResource->getIdentifier())
         );
 
         $startImportTime = microtime(true);
 
         $lock = $this->createLock(
-            __CLASS__ .'/'. __METHOD__.'/'.$qtiItemResource->getIdentifier(),
+            __CLASS__ . '/' . __METHOD__ . '/' . $qtiItemResource->getIdentifier(),
             $this->getOption(self::OPTION_IMPORT_LOCK_TTL)
         );
         $lock->acquire(true);
@@ -460,8 +502,6 @@ class ImportService extends ConfigurableService
             //load the information about resources in the manifest
             try {
                 $resourceIdentifier = $qtiItemResource->getIdentifier();
-
-                $this->getMetadataImporter()->setMetadataValues($metadataValues);
                 $guardian = false;
 
                 if ($enableMetadataGuardians === true) {
@@ -470,29 +510,34 @@ class ImportService extends ConfigurableService
                         // Item found by guardians.
                         if ($itemMustBeOverwritten === true) {
                             \common_Logger::i(
-                                'Resource "' . $resourceIdentifier . '" is already stored in the database and will be overwritten.'
+                                'Resource "' . $resourceIdentifier
+                                    . '" is already stored in the database and will be overwritten.'
                             );
                             $overWriting = true;
                         } else {
                             \common_Logger::i(
-                                'Resource "' . $resourceIdentifier . '" is already stored in the database and will not be imported.'
+                                'Resource "' . $resourceIdentifier
+                                    . '" is already stored in the database and will not be imported.'
                             );
 
-                            return common_report_Report::createInfo(
+                            return Report::createInfo(
+                                // phpcs:disable Generic.Files.LineLength
                                 __('The IMS QTI Item referenced as "%s" in the IMS Manifest file was already stored in the Item Bank.', $resourceIdentifier),
+                                // phpcs:enable Generic.Files.LineLength
                                 new MetadataGuardianResource($guardian)
                             );
                         }
-                    }
-                    // Item not found by guardians.
-                    elseif ($itemMustExist === true) {
+                    } elseif ($itemMustExist === true) { // Item not found by guardians.
                         \common_Logger::i(
-                            'Resource "' . $resourceIdentifier . '" must be already stored in the database in order to proceed.'
+                            'Resource "' . $resourceIdentifier
+                                . '" must be already stored in the database in order to proceed.'
                         );
 
-                        return new common_report_Report(
-                            common_report_Report::TYPE_ERROR,
+                        return new Report(
+                            Report::TYPE_ERROR,
+                            // phpcs:disable Generic.Files.LineLength
                             __('The IMS QTI Item referenced as "%s" in the IMS Manifest file should have been found the Item Bank. Item not found.', $resourceIdentifier)
+                            // phpcs:enable Generic.Files.LineLength
                         );
                     }
                 }
@@ -500,9 +545,11 @@ class ImportService extends ConfigurableService
                 if ($enableMetadataValidators === true) {
                     $validationReport = $this->getMetadataImporter()->validate($resourceIdentifier);
 
-                    if ($validationReport->getType() !== \common_report_Report::TYPE_SUCCESS) {
+                    if ($validationReport->getType() !== Report::TYPE_SUCCESS) {
                         $validationReport->setMessage(
+                            // phpcs:disable Generic.Files.LineLength
                             __('Item metadata with identifier "%s" is not valid: ', $resourceIdentifier) . $validationReport->getMessage()
+                            // phpcs:enable Generic.Files.LineLength
                         );
                         \common_Logger::i('Item metadata is not valid: ' . $validationReport->getMessage());
 
@@ -511,11 +558,9 @@ class ImportService extends ConfigurableService
                 }
 
                 $targetClass = $this->getMetadataImporter()->classLookUp($resourceIdentifier, $createdClasses);
-
                 $tmpQtiFile = $tmpFolder . helpers_File::urlToPath($qtiItemResource->getFile());
-
                 common_Logger::i('file :: ' . $qtiItemResource->getFile());
-
+                $this->convertToQti2($tmpQtiFile);
                 $qtiModel = $this->createQtiItemModel($tmpQtiFile);
 
                 if (
@@ -523,8 +568,10 @@ class ImportService extends ConfigurableService
                         $qtiModel
                     )
                 ) {
-                    return common_report_Report::createFailure(
+                    return Report::createError(
+                        // phpcs:disable Generic.Files.LineLength
                         __('The IMS QTI Item referenced as "%s" in the IMS Manifest file has incorrect Response Processing and outcomeDeclaration definitions.', $resourceIdentifier)
+                        // phpcs:enable Generic.Files.LineLength
                     );
                 }
 
@@ -556,13 +603,13 @@ class ImportService extends ConfigurableService
                 $peHandler = new PortableAssetHandler($qtiModel, $tmpFolder, dirname($tmpQtiFile));
                 $itemAssetManager->loadAssetHandler($peHandler);
 
-                if ($this->getServiceLocator()->get(\common_ext_ExtensionsManager::SERVICE_ID)->isInstalled('taoMediaManager')) {
-                    // Media manager path where to store the stimulus.
-                    $path = $this->retrieveFullPathLabels($itemClass);
-                    // Uses the first created item's label as the leaf class.
-                    if (is_array($path)) {
-                        array_unshift($path, $rdfItem->getLabel());
-                    }
+                if (
+                    $this
+                        ->getServiceLocator()
+                        ->get(\common_ext_ExtensionsManager::SERVICE_ID)
+                        ->isInstalled('taoMediaManager')
+                ) {
+                    $mediaClassPath = $this->getTargetClassForAssets($itemClass, $rdfItem);
                     /** Shared stimulus handler */
                     $sharedStimulusHandler = new SharedStimulusAssetHandler();
                     $sharedStimulusHandler->setServiceLocator($this->getServiceLocator());
@@ -570,7 +617,7 @@ class ImportService extends ConfigurableService
                         ->setQtiModel($qtiModel)
                         ->setItemSource(new ItemMediaResolver($rdfItem, ''))
                         ->setSharedFiles($sharedFiles)
-                        ->setParentPath(json_encode($path));
+                        ->setTargetClassPath($mediaClassPath);
                     $itemAssetManager->loadAssetHandler($sharedStimulusHandler);
                 } else {
                     $handler = new StimulusHandler();
@@ -600,28 +647,41 @@ class ImportService extends ConfigurableService
                 $qtiModel = $this->createQtiItemModel($itemAssetManager->getItemContent(), false);
                 $qtiService->saveDataItemToRdfItem($qtiModel, $rdfItem);
 
-                $this->getMetadataImporter()->inject($resourceIdentifier, $rdfItem);
+                if ($importMetadataEnabled && isset($metadataValues[$resourceIdentifier])) {
+                    $this->getMappedMetadataInjector()->inject(
+                        $metaMedataValues,
+                        $metadataValues[$resourceIdentifier],
+                        $rdfItem
+                    );
+                }
+
 
                 $eventManager = ServiceManager::getServiceManager()->get(EventManager::CONFIG_ID);
                 $eventManager->trigger(new ItemImported($rdfItem, $qtiModel));
 
                 // Build report message.
                 if ($guardian !== false) {
+                    // phpcs:disable Generic.Files.LineLength
                     $msg = __('The IMS QTI Item referenced as "%s" in the IMS Manifest file was successfully overwritten.', $qtiItemResource->getIdentifier());
+                // phpcs:enable Generic.Files.LineLength
                 } else {
+                    // phpcs:disable Generic.Files.LineLength
                     $msg = __('The IMS QTI Item referenced as "%s" in the IMS Manifest file was successfully imported.', $qtiItemResource->getIdentifier());
+                    // phpcs:enable Generic.Files.LineLength
                 }
 
                 $this->getItemEventDispatcher()->dispatch($qtiModel, $rdfItem);
 
-                $report = common_report_Report::createSuccess($msg, $rdfItem);
+                $report = Report::createSuccess($msg, $rdfItem);
             } catch (ParsingException $e) {
                 $message = __('Resource "' . $resourceIdentifier . 'has an error. ') . $e->getUserMessage();
 
-                $report = new common_report_Report(common_report_Report::TYPE_ERROR, $message);
+                $report = new Report(Report::TYPE_ERROR, $message);
             } catch (ValidationException $ve) {
-                $report = common_report_Report::createFailure(
+                $report = Report::createFailure(
+                    // phpcs:disable Generic.Files.LineLength
                     __('IMS QTI Item referenced as "%s" in the IMS Manifest file could not be imported.', $resourceIdentifier)
+                    // phpcs:enable Generic.Files.LineLength
                 );
                 $report->add($ve->getReport());
             } catch (XmlStorageException $e) {
@@ -637,13 +697,15 @@ class ImportService extends ConfigurableService
                 }
                 $message .= __(' For Resource "' . $resourceIdentifier);
 
-                $report = new common_report_Report(
-                    common_report_Report::TYPE_ERROR,
+                $report = new Report(
+                    Report::TYPE_ERROR,
                     $message
                 );
             } catch (PortableElementInvalidModelException $pe) {
-                $report = common_report_Report::createFailure(
+                $report = Report::createFailure(
+                    // phpcs:disable Generic.Files.LineLength
                     __('IMS QTI Item referenced as "%s" contains a portable element and cannot be imported.', $resourceIdentifier)
+                    // phpcs:enable Generic.Files.LineLength
                 );
                 $report->add($pe->getReport());
                 if (isset($rdfItem) && !is_null($rdfItem) && $rdfItem->exists() && !$overWriting) {
@@ -657,23 +719,36 @@ class ImportService extends ConfigurableService
                     $msg = __('Error on item %s', $resourceIdentifier);
                     common_Logger::d($e->getMessage());
                 }
-                $report = new common_report_Report(common_report_Report::TYPE_ERROR, $msg);
+                $report = new Report(Report::TYPE_ERROR, $msg);
                 if (isset($rdfItem) && !is_null($rdfItem) && $rdfItem->exists() && !$overWriting) {
                     $rdfItem->delete();
                 }
             } catch (TemplateException $e) {
-                $report = new common_report_Report(
-                    common_report_Report::TYPE_ERROR,
+                $report = new Report(
+                    Report::TYPE_ERROR,
+                    // phpcs:disable Generic.Files.LineLength
                     __('The IMS QTI Item referenced as "%s" in the IMS Manifest file failed:  %s', $resourceIdentifier, $e->getMessage())
+                    // phpcs:enable Generic.Files.LineLength
                 );
+                if (isset($rdfItem) && !is_null($rdfItem) && $rdfItem->exists() && !$overWriting) {
+                    $rdfItem->delete();
+                }
+            } catch (MetaMetadataException $e) {
+                $error = Reporter::createError(
+                    sprintf('Import failed at validating metametadata with message: "%s"', $e->getMessage())
+                );
+                $report->add($error);
+                common_Logger::e($e->getMessage());
                 if (isset($rdfItem) && !is_null($rdfItem) && $rdfItem->exists() && !$overWriting) {
                     $rdfItem->delete();
                 }
             } catch (Exception $e) {
                 // an error occurred during a specific item
-                $report = new common_report_Report(
-                    common_report_Report::TYPE_ERROR,
+                $report = new Report(
+                    Report::TYPE_ERROR,
+                    // phpcs:disable Generic.Files.LineLength
                     __("An unknown error occured while importing the IMS QTI Package with identifier: " . $resourceIdentifier)
+                    // phpcs:enable Generic.Files.LineLength
                 );
                 if (isset($rdfItem) && !is_null($rdfItem) && $rdfItem->exists() && !$overWriting) {
                     $rdfItem->delete();
@@ -681,13 +756,13 @@ class ImportService extends ConfigurableService
                 common_Logger::e($e->getMessage());
             }
         } catch (ValidationException $ve) {
-            $validationReport = common_report_Report::createFailure("The IMS Manifest file could not be validated");
+            $validationReport = Report::createFailure("The IMS Manifest file could not be validated");
             $validationReport->add($ve->getReport());
             $report->setMessage(__("No Items could be imported from the given IMS QTI package."));
-            $report->setType(common_report_Report::TYPE_ERROR);
+            $report->setType(Report::TYPE_ERROR);
             $report->add($validationReport);
         } catch (common_exception_UserReadableException $e) {
-            $report = new common_report_Report(common_report_Report::TYPE_ERROR, __($e->getUserMessage()));
+            $report = new Report(Report::TYPE_ERROR, __($e->getUserMessage()));
             $report->add($e);
         } finally {
             $this->checkImportLockTime($startImportTime, $qtiItemResource->getIdentifier());
@@ -748,9 +823,9 @@ class ImportService extends ConfigurableService
         // Some items (especially to collect information) have no response processing!
         if (
             $responseProcessing !== null && ($responseProcessing->hasTemplate(
-                ) === true || $responseProcessing->hasTemplateLocation() === true || count(
-                    $responseProcessing->getResponseRules()
-                ) > 0)
+            ) === true || $responseProcessing->hasTemplateLocation() === true || count(
+                $responseProcessing->getResponseRules()
+            ) > 0)
         ) {
             $engine = new ResponseProcessingEngine($responseProcessing, $itemSession);
             $rules = $engine->getResponseProcessingRules();
@@ -765,7 +840,8 @@ class ImportService extends ConfigurableService
      * @param MetadataValue[] $metadataValues An array of MetadataValue objects.
      * @param Resource $qtiResource The object representing the QTI Resource, from an IMS Manifest perspective.
      * @param core_kernel_classes_Resource $resource The object representing the target QTI Item in the Ontology.
-     * @param MetadataInjector[] $ontologyInjectors Implementations of MetadataInjector that will take care to inject the metadata values in the appropriate Ontology Resource Properties.
+     * @param MetadataInjector[] $ontologyInjectors Implementations of MetadataInjector that will take care to inject
+     *                                              the metadata values in the appropriate Ontology Resource Properties.
      * @throws MetadataInjectionException If an error occurs while importing the metadata.
      * @deprecated use MetadataService::getImporter::inject()
      *
@@ -786,7 +862,8 @@ class ImportService extends ConfigurableService
                 $valuesCount = count($values);
                 $injectorClass = get_class($injector);
                 \common_Logger::i(
-                    "Attempting to inject ${valuesCount} Metadata Values in database for resource '${identifier}' with Metadata Injector '${injectorClass}'."
+                    "Attempting to inject ${valuesCount} Metadata Values in database for resource "
+                        . "'${identifier}' with Metadata Injector '${injectorClass}'."
                 );
                 $injector->inject($resource, [$identifier => $values]);
             }
@@ -795,13 +872,13 @@ class ImportService extends ConfigurableService
 
     /**
      * @param array $items
-     * @param common_report_Report $report
+     * @param Report $report
      * @param array $createdClasses (optional)
      * @throws common_exception_Error
      */
     protected function rollback(
         array $items,
-        common_report_Report $report,
+        Report $report,
         array $createdClasses = [],
         array $overwrittenItems = []
     ) {
@@ -815,8 +892,8 @@ class ImportService extends ConfigurableService
                 @taoItems_models_classes_ItemsService::singleton()->deleteResource($item);
 
                 $report->add(
-                    new common_report_Report(
-                        common_report_Report::TYPE_WARNING,
+                    new Report(
+                        Report::TYPE_WARNING,
                         __('The IMS QTI Item referenced as "%s" in the IMS Manifest was successfully rolled back.', $id)
                     )
                 );
@@ -847,34 +924,81 @@ class ImportService extends ConfigurableService
         return $this->metadataImporter;
     }
 
+    protected function getMetaMetadataExtractor(): MetaMetadataExtractor
+    {
+        return $this->getServiceManager()->getContainer()->get(MetaMetadataExtractor::class);
+    }
+
     /**
      * Retrieve the labels of all parent classes up to base item class.
-     *
-     * Return values: an empty string if the $class parameter is not a class object
-     *                an empty array if the $class parameter is the base item class
-     *                an array in other cases, ordered from base item class to the class given as parameter
-     *
-     * @param mixed $class Class from which to retrieve.
-     * @return array|string
      */
-    public function retrieveFullPathLabels($class)
-    {
-        if (!$class instanceof core_kernel_classes_Class) {
-            return '';
-        }
-
+    public function getTargetClassForAssets(
+        core_kernel_classes_Class $itemClass,
+        core_kernel_classes_Resource $itemResource
+    ): array {
+        // Collecting labels path from item root to the class where the item resource is stored
         $labels = [];
-        while ($class->getUri() !== TaoOntology::CLASS_URI_ITEM) {
-            $labels []= $class->getLabel();
-            $parentClasses = $class->getParentClasses();
-            $class = reset($parentClasses);
+        while ($itemClass->getUri() !== TaoOntology::CLASS_URI_ITEM) {
+            $labels [] = $itemClass->getLabel();
+            $parentClasses = $itemClass->getParentClasses();
+            $itemClass = reset($parentClasses);
         }
 
-        return array_reverse($labels);
+        $path = array_reverse($labels);
+
+        // Adding item's label as the leaf class.
+        $path[] = $itemResource->getLabel();
+
+        return $path;
     }
 
     private function getItemEventDispatcher(): UpdatedItemEventDispatcher
     {
         return $this->getServiceLocator()->get(UpdatedItemEventDispatcher::class);
+    }
+
+    private function getMappedMetadataInjector(): MappedMetadataInjector
+    {
+        return $this->getServiceManager()->getContainer()->get(MappedMetadataInjector::class);
+    }
+
+    private function getMetaMetadataImportMapper(): MetaMetadataImportMapper
+    {
+        return $this->getServiceManager()->getContainer()->get(MetaMetadataImportMapper::class);
+    }
+
+    private function getUniqueNumericQtiIdentifierReplacer(): UniqueNumericQtiIdentifierReplacer
+    {
+        return $this->getServiceManager()->getContainer()->get(UniqueNumericQtiIdentifierReplacer::class);
+    }
+
+    private function replaceUniqueNumericQtiIdentifier(string $qtiXml): string
+    {
+        return $this->getUniqueNumericQtiIdentifierReplacer()->replace($qtiXml);
+    }
+
+    private function convertToQti2(string $tmpQtiFile): void
+    {
+        $this->getItemConverter()->convertToQti2($tmpQtiFile);
+    }
+
+    private function getItemConverter(): ItemConverter
+    {
+        return $this->getServiceManager()->getContainer()->get(ItemConverter::class);
+    }
+
+    /**
+     * Checks if target class has all the properties needed to import the metadata.
+     * @param array $metadataValues
+     * @param $itemProperties
+     * @return array
+     */
+    private function checkMissingClassProperties(array $metadataValues, $itemProperties): array
+    {
+        $metadataValueUris = $this->getMetadataImporter()->metadataValueUris($metadataValues);
+        return array_diff(
+            $metadataValueUris,
+            array_keys($itemProperties)
+        );
     }
 }

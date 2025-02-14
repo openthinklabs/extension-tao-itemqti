@@ -22,14 +22,20 @@ define([
     'core/promise',
     'taoQtiItem/qtiItem/core/Element',
     'taoQtiItem/qtiCreator/model/helper/invalidator',
+    'taoQtiItem/qtiCreator/editor/styleEditor/styleEditor',
     'core/logger'
-], function (_, $, Promise, Element, invalidator, loggerFactory) {
+], function (_, $, Promise, Element, invalidator, styleEditor, loggerFactory) {
     'use strict';
 
     const _pushState = function (widget, stateName) {
         const currentState = new widget.registeredStates[stateName](widget);
         widget.stateStack.push(currentState);
         currentState.init();
+        if (stateName === 'deleting') {
+            // stylesheet clean
+            const passageSerial = widget.$container[0].dataset['serial'];
+            styleEditor.removeStylesheetOnDeletePassage(passageSerial);
+        }
     };
 
     const _popState = function (widget) {
@@ -87,7 +93,7 @@ define([
                 this.offEvents(); //not sure if still required after state definition
 
                 //pass the options to the initCreator for custom options usage
-                _.each(this.getRequiredOptions(), function (opt) {
+                _.forEach(this.getRequiredOptions(), function (opt) {
                     if (!options[opt]) {
                         throw new Error(`missing required option for image creator : ${opt}`);
                     }
@@ -206,18 +212,18 @@ define([
 
                     //then, exit super states in order:
                     exitedStates = _.difference(currentState.superState, state.superState);
-                    _.each(exitedStates, () => {
+                    _.forEach(exitedStates, () => {
                         _popState(this);
                     });
 
                     //finally, init super states in reverse order:
                     enteredStates = _.difference(state.superState, currentState.superState);
-                    _.eachRight(enteredStates, _superStateName => {
+                    _.forEachRight(enteredStates, _superStateName => {
                         _pushState(this, _superStateName);
                     });
                 }
             } else {
-                _.eachRight(state.superState, _superStateName => {
+                _.forEachRight(state.superState, _superStateName => {
                     _pushState(this, _superStateName);
                 });
             }
@@ -290,6 +296,7 @@ define([
                 //otherwise use less performance efficient selector
                 $container = $(`.widget-box[data-serial=${element.serial}]`);
             }
+            let contentEditableState = $container.attr('contenteditable');
 
             //once required data ref has been set, destroy it:
             this.destroy();
@@ -301,6 +308,7 @@ define([
                 if (renderer.name === 'creatorRenderer') {
                     element.render($container);
                     element.postRender(postRenderOpts);
+                    element.data('widget').$container.attr('contenteditable', contentEditableState);
                     return element.data('widget');
                 } else {
                     throw new Error('The renderer is no longer the creatorRenderer');
@@ -325,7 +333,7 @@ define([
             const eventNames = qtiElementEventName.replace(/\s+/g, ' ').split(' '),
                 $document = $(document);
 
-            _.each(eventNames, eventName => {
+            _.forEach(eventNames, eventName => {
                 const eventNameToken = [eventName, 'qti-widget', this.serial];
 
                 if (!live) {

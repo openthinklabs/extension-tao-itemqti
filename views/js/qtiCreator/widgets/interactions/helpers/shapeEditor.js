@@ -181,7 +181,7 @@ define([
                     self.setState('resizing', true)
                         .trigger('shapechanging.qti-widget');
 
-                    //create a layer to be reiszed
+                    //create a layer to be resized
                     self.layer = self.shape.clone();
                     self.layer.attr(graphicHelper._style.basic);
                     self.layer.attr('cursor', handler.attrs.cursor);
@@ -193,16 +193,16 @@ define([
                     });
 
                     if(self.shape.type === 'path'){
-                       _.forEach(self.shape.attr('path'), function(point, index){
-                           if(point.length === 3 && point[1] === this.attr('cx') && point[2] === this.attr('cy')){
+                        self.shape.attr('path').forEach(function(point, index){
+                            if(point.length === 3 && point[1] === this.attr('cx') && point[2] === this.attr('cy')){
                                 this.pointIndex = index;
                                 return false;
-                           }
-                       }, handler);
+                            }
+                        }, handler);
                     }
 
                     //hide others
-                    _.invoke(_.reject(_.clone(self.handlers), function(elt){
+                    _.invokeMap(_.reject(_.clone(self.handlers), function(elt){
                         return elt === handler;
                     }), 'hide');
                 }
@@ -264,7 +264,7 @@ define([
                     self.layer.remove();
                     self.layerTxt.remove();
 
-                    _.invoke(self.handlers, 'remove');
+                    _.invokeMap(self.handlers, 'remove');
                     self.handlers = [];
                 }
 
@@ -281,7 +281,7 @@ define([
                         self.shape.attr('cursor', 'move');
                         background.attr('cursor', 'move');
 
-                        _.invoke(self.handlers, 'remove');
+                        _.invokeMap(self.handlers, 'remove');
 
                         attr = shape.attr();
 
@@ -339,7 +339,7 @@ define([
                     }
                     self.shape.attr('cursor', 'move');
                     background.attr('cursor', 'move');
-                    _.invoke(self.handlers, 'remove');
+                    _.invokeMap(self.handlers, 'remove');
                 }
 
                 /**
@@ -382,7 +382,7 @@ define([
                 $(document).off('keydown.qti-widget');
 
                 this.shape.undrag();
-                _.invoke(this.handlers, 'remove');
+                _.invokeMap(this.handlers, 'remove');
                 this.handlers = [];
 
                 this.setState('moving', false)

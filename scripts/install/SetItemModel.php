@@ -25,6 +25,7 @@ namespace oat\taoQtiItem\scripts\install;
 use oat\oatbox\extension\InstallAction;
 use oat\taoQtiItem\model\Export\ApipPackageExportHandler;
 use oat\taoQtiItem\model\Export\ItemMetadataByClassExportHandler;
+use oat\taoQtiItem\model\Export\Qti3Package\Handler as Qti3PackageExportHandler;
 use oat\taoQtiItem\model\Export\QtiPackage22ExportHandler;
 use oat\taoQtiItem\model\Export\QtiPackageExportHandler;
 use oat\taoQtiItem\model\import\QtiItemImport;
@@ -46,7 +47,8 @@ class SetItemModel extends InstallAction
                 new ItemMetadataByClassExportHandler(),
                 new ApipPackageExportHandler(),
                 new QtiPackageExportHandler(),
-                new QtiPackage22ExportHandler()
+                new QtiPackage22ExportHandler(),
+                new Qti3PackageExportHandler()
             ],
             ItemModel::IMPORT_HANDLER => [
                 new QtiItemImport(),
@@ -54,9 +56,15 @@ class SetItemModel extends InstallAction
             ]
         ];
 
-        if (\common_ext_ExtensionsManager::singleton()->getExtensionById('taoQtiItem')->hasConfig(ItemModel::COMPILER)) {
-            $options[ItemModel::COMPILER] = \common_ext_ExtensionsManager::singleton()->getExtensionById('taoQtiItem')->getConfig(ItemModel::COMPILER);
-            \common_ext_ExtensionsManager::singleton()->getExtensionById('taoQtiItem')->unsetConfig(ItemModel::COMPILER);
+        if (
+            \common_ext_ExtensionsManager::singleton()->getExtensionById('taoQtiItem')->hasConfig(ItemModel::COMPILER)
+        ) {
+            $options[ItemModel::COMPILER] = \common_ext_ExtensionsManager::singleton()
+                ->getExtensionById('taoQtiItem')
+                ->getConfig(ItemModel::COMPILER);
+            \common_ext_ExtensionsManager::singleton()
+                ->getExtensionById('taoQtiItem')
+                ->unsetConfig(ItemModel::COMPILER);
         } else {
             $options[ItemModel::COMPILER] = 'oat\\taoQtiItem\\model\\QtiItemCompiler';
         }

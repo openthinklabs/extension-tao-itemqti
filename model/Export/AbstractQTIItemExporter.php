@@ -15,14 +15,16 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2008-2010 (original work) Deutsche Institut für Internationale Pädagogische Forschung (under the project TAO-TRANSFER);
- *               2009-2012 (update and modification) Public Research Centre Henri Tudor (under the project TAO-SUSTAIN & TAO-DEV);
- *               2013-2021 (update and modification) Open Assessment Technologies SA (under the project TAO-PRODUCT);
- *
+ * Copyright (c) 2008-2010 (original work) Deutsche Institut für Internationale Pädagogische Forschung
+ *                         (under the project TAO-TRANSFER);
+ *               2009-2012 (update and modification) Public Research Centre Henri Tudor
+ *                         (under the project TAO-SUSTAIN & TAO-DEV);
+ *               2013-2022 (update and modification) Open Assessment Technologies SA (under the project TAO-PRODUCT);
  */
 
 namespace oat\taoQtiItem\model\Export;
 
+use oat\oatbox\filesystem\FilesystemException;
 use oat\oatbox\reporting\Report;
 use oat\tao\helpers\Base64;
 use oat\tao\model\media\MediaBrowser;
@@ -30,7 +32,6 @@ use oat\taoQtiItem\model\Export\Exception\AssetStylesheetZipTransferException;
 use oat\taoQtiItem\model\Export\Stylesheet\AssetStylesheetLoader;
 use core_kernel_classes_Property;
 use DOMDocument;
-use League\Flysystem\FileNotFoundException;
 use oat\oatbox\filesystem\Directory;
 use oat\oatbox\service\ServiceManager;
 use oat\tao\model\media\ProcessedFileStreamAware;
@@ -102,7 +103,9 @@ abstract class AbstractQTIItemExporter extends taoItems_models_classes_ItemExpor
             $report->setType(\common_report_Report::TYPE_ERROR);
             return $report;
         }
-        $dataFile = (string)$this->getItemModel()->getOnePropertyValue(new core_kernel_classes_Property(\taoItems_models_classes_ItemsService::TAO_ITEM_MODEL_DATAFILE_PROPERTY));
+        $dataFile = (string)$this->getItemModel()->getOnePropertyValue(
+            new core_kernel_classes_Property(\taoItems_models_classes_ItemsService::TAO_ITEM_MODEL_DATAFILE_PROPERTY)
+        );
         $resolver = new ItemMediaResolver($this->getItem(), $lang);
         $replacementList = [];
         $portableElements = $this->getPortableElementAssets($this->getItem(), $lang);
@@ -127,10 +130,15 @@ abstract class AbstractQTIItemExporter extends taoItems_models_classes_ItemExpor
             $portableElementExporter = $object->getModel()->getExporter($object, $this);
             $portableElementsToExport[$element->getTypeIdentifier()] = $portableElementExporter;
             try {
-                $portableAssets = array_merge($portableAssets, $portableElementExporter->copyAssetFiles($replacementList));
+                $portableAssets = array_merge(
+                    $portableAssets,
+                    $portableElementExporter->copyAssetFiles($replacementList)
+                );
             } catch (\tao_models_classes_FileNotFoundException $e) {
                 \common_Logger::i($e->getMessage());
-                $report->setMessage('Missing portable element asset for "' . $object->getTypeIdentifier() . '"": ' . $e->getMessage());
+                $report->setMessage(
+                    'Missing portable element asset for "' . $object->getTypeIdentifier() . '"": ' . $e->getMessage()
+                );
                 $report->setType(\common_report_Report::TYPE_ERROR);
             }
         }
@@ -172,7 +180,7 @@ abstract class AbstractQTIItemExporter extends taoItems_models_classes_ItemExpor
 
         try {
             $xml = Service::singleton()->getXmlByRdfItem($this->getItem());
-        } catch (FileNotFoundException $e) {
+        } catch (FilesystemException $e) {
             $report->setMessage($this->getExportErrorMessage(__('cannot find QTI XML')));
             $report->setType(\common_report_Report::TYPE_ERROR);
             return $report;
@@ -190,7 +198,7 @@ abstract class AbstractQTIItemExporter extends taoItems_models_classes_ItemExpor
 
             foreach ($attributeNodes as $node) {
                 if (isset($replacementList[$node->value])) {
-                    $node->value = htmlspecialchars($replacementList[$node->value], ENT_QUOTES|ENT_XML1);
+                    $node->value = htmlspecialchars($replacementList[$node->value], ENT_QUOTES | ENT_XML1);
                 }
             }
             foreach ($portableEntryNodes as $node) {
@@ -230,8 +238,16 @@ abstract class AbstractQTIItemExporter extends taoItems_models_classes_ItemExpor
 
     protected function setCorrectQTIVersion(string $itemQTI): string
     {
-        $processed = preg_replace('/(http:\/\/www\.imsglobal\.org\/xsd\/qti\/)qtiv(\wp\w)/', '$1qtiv' . $this->getQTIVersion(), $itemQTI);
-        $processed = preg_replace('/(http:\/\/www\.imsglobal\.org\/(xsd|question).+?)qti_v(\wp\w)/', '$1qti_v' . $this->getQTIVersion(), $processed);
+        $processed = preg_replace(
+            '/(http:\/\/www\.imsglobal\.org\/xsd\/qti\/)qtiv(\wp\w)/',
+            '$1qtiv' . $this->getQTIVersion(),
+            $itemQTI
+        );
+        $processed = preg_replace(
+            '/(http:\/\/www\.imsglobal\.org\/(xsd|question).+?)qti_v(\wp\w)/',
+            '$1qti_v' . $this->getQTIVersion(),
+            $processed
+        );
 
         return $processed;
     }
@@ -351,13 +367,12 @@ abstract class AbstractQTIItemExporter extends taoItems_models_classes_ItemExpor
      */
     private function addAssetStylesheetToZip(string $link, string $baseDirectoryName, string $basepath): void
     {
-        if ($assetStylesheetStream = $this->getAssetStylesheetLoader()->loadAssetFromAssetResource($link)) {
-            $transferedFiles = $this->addFile(
-                $assetStylesheetStream,
-                $this->buildAssetStylesheetPath($basepath, $baseDirectoryName)
-            );
-            if ($transferedFiles !== 1) {
-                throw new AssetStylesheetZipTransferException('This should only transfer 1 file to zip');
+        if ($assetStylesheets = $this->getAssetStylesheetLoader()->loadAssetsFromAssetResource($link)) {
+            foreach ($assetStylesheets as $stylesheetFile) {
+                $this->addFile(
+                    $stylesheetFile['stream'],
+                    $this->buildAssetStylesheetPath($basepath, $baseDirectoryName, basename($stylesheetFile['path']))
+                );
             }
         }
     }
@@ -369,7 +384,7 @@ abstract class AbstractQTIItemExporter extends taoItems_models_classes_ItemExpor
             . $mediaSource->getFileInfo($link)['link'];
     }
 
-    private function buildAssetStylesheetPath(string $basepath, string $baseDirectoryName): string
+    private function buildAssetStylesheetPath(string $basepath, string $baseDirectoryName, string $fileName): string
     {
         return implode(
             DIRECTORY_SEPARATOR,
@@ -377,7 +392,7 @@ abstract class AbstractQTIItemExporter extends taoItems_models_classes_ItemExpor
                 $basepath,
                 $baseDirectoryName,
                 self::CSS_DIRECTORY_NAME,
-                self::CSS_FILE_NAME
+                $fileName
             ]
         );
     }

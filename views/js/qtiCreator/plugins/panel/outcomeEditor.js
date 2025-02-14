@@ -26,6 +26,7 @@ define([
     'taoQtiItem/qtiCreator/model/variables/OutcomeDeclaration',
     'taoQtiItem/qtiCreator/helper/xmlRenderer',
     'ui/tooltip',
+    'services/features',
     'tpl!taoQtiItem/qtiCreator/tpl/outcomeEditor/panel',
     'tpl!taoQtiItem/qtiCreator/tpl/outcomeEditor/listing'
 ], function (
@@ -39,6 +40,7 @@ define([
     OutcomeDeclaration,
     xmlRenderer,
     tooltip,
+    features,
     panelTpl,
     listingTpl
 ) {
@@ -59,6 +61,10 @@ define([
         human: 'human',
         externalMachine: 'externalMachine'
     };
+    const externalScoredValidOptions = [
+        externalScoredOptions.human,
+        externalScoredOptions.externalMachine
+    ];
 
     /**
      * Get the identifiers of the variables that are used in the response declaration
@@ -68,12 +74,14 @@ define([
      */
     function getRpUsedVariables(item) {
         const rpXml = xmlRenderer.render(item.responseProcessing);
-        const variables = [ 'SCORE', 'MAXSCORE' ]; //score and max score are always used, even in template based response processing
+        const variables = ['MAXSCORE'];
         const $rp = $(rpXml);
 
         $rp.find('variable,setOutcomeValue').each(function () {
             const id = $(this).attr('identifier');
-            variables.push(id);
+            if (id !== 'SCORE') {
+                variables.push(id);
+            }
         });
 
         return _.uniq(variables);
@@ -86,11 +94,16 @@ define([
      * @param {JQuery} $outcomeEditorPanel
      */
     function renderListing(item, $outcomeEditorPanel) {
-        const rpVariables = getRpUsedVariables(item);
+        const readOnlyRpVariables = getRpUsedVariables(item);
+        const scoreMaxScoreVisible = features.isVisible('taoQtiItem/creator/interaction/response/outcomeDeclarations/scoreMaxScore');
+        const scoreExternalScored = _.get(_.find(item.outcomes, function (outcome) {
+            return outcome.attributes && outcome.attributes.identifier === 'SCORE';
+        }), 'attributes.externalScored', externalScoredOptions.none);
 
-        const outcomesData = _.map(item.outcomes, function (outcome) {
-            const readonly = rpVariables.indexOf(outcome.id()) >= 0;
-
+        let outcomesData = _.map(item.outcomes, function (outcome) {
+            const readonly = readOnlyRpVariables.indexOf(outcome.id()) >= 0;
+            const id = outcome.id();
+            let externalScoredDisabled = outcome.attr('externalScoredDisabled');
             const externalScored = {
                 none: { label: __('None'), selected: !outcome.attr('externalScored') },
                 human: { label: __('Human'), selected: outcome.attr('externalScored') === externalScoredOptions.human },
@@ -99,10 +112,35 @@ define([
                     selected: outcome.attr('externalScored') === externalScoredOptions.externalMachine
                 }
             };
+            function setExternalScoredToNone() {
+                externalScoredDisabled = 1;
+                outcome.removeAttr('externalScored');
+            }
+
+            function hasExternalScoredOutcome(outcomes) {
+                return _.some(outcomes, function (outcome) {
+                    return outcome.attributes &&
+                    outcome.attributes.identifier !== 'SCORE' &&
+                    outcome.attributes.externalScored &&
+                    outcome.attributes.externalScored !== externalScoredOptions.none
+                });
+            }
+
+            function shouldSetExternalScoredToNone() {
+                if (id !== 'SCORE') {
+                    return scoreExternalScored && scoreExternalScored !== externalScoredOptions.none;
+                }
+                return hasExternalScoredOutcome(item.outcomes);
+            }
+
+            if (shouldSetExternalScoredToNone()) {
+                setExternalScoredToNone();
+            }
 
             return {
                 serial: outcome.serial,
-                identifier: outcome.id(),
+                identifier: id,
+                hidden: (id === 'SCORE' || id === 'MAXSCORE') && !scoreMaxScoreVisible,
                 interpretation: outcome.attr('interpretation'),
                 longInterpretation: outcome.attr('longInterpretation'),
                 externalScored: externalScored,
@@ -112,9 +150,17 @@ define([
                     ? __('Cannot delete a variable currently used in response processing')
                     : __('Delete'),
                 titleEdit: readonly ? __('Cannot edit a variable currently used in response processing') : __('Edit'),
-                readonly: readonly
+                readonly: readonly,
+                externalScoredDisabled: externalScoredDisabled || 0
             };
         });
+
+        const allExternalScoredDisabled = outcomesData.every(outcomeData => outcomeData.externalScoredDisabled === 1);
+
+        if (allExternalScoredDisabled) {
+            // Update all externalScoredDisabled values to false if we have inconsistente data from bad items
+            outcomesData.forEach(outcomeData => outcomeData.externalScoredDisabled = 0);
+        }
 
         $outcomeEditorPanel.find('.outcomes').html(
             listingTpl({
@@ -157,6 +203,60 @@ define([
         }
     };
 
+    function setMinumumMaximumValue(outcomeElement, outcomeValueContainer, min, max) {
+        outcomeElement.attr('normalMaximum', max);
+        outcomeValueContainer.find('[name="normalMaximum"]').val(max);
+        outcomeElement.attr('normalMinimum', min);
+        outcomeValueContainer.find('[name="normalMinimum"]').val(min);
+    }
+
+
+    function updateExternalScored(responsePanel, serial, disableCondition, shouldDisable) {
+        // Iterate over each outcome container
+        responsePanel.find('.outcome-container').each(function () {
+            const currentSerial = $(this).data('serial');
+            if (currentSerial === serial) {
+                return; // Skip the current serial
+            }
+
+            const currentOutcomeElement = Element.getElementBySerial(currentSerial);
+            const id = $(this).find(".identifier").val();
+
+            // Check if disabling condition is met
+            if (disableCondition(id)) {
+                $(this).find("select[name='externalScored']").attr('disabled', shouldDisable);
+                if (shouldDisable) {
+                    currentOutcomeElement.removeAttr('externalScored');
+                }
+            }
+        });
+    }
+
+    function shouldDisableScoreBasedOnOtherVariables(responsePanel, serial) {
+        let shouldDisable = false;
+
+        // Iterate over each element in responsePanel and check if any value != none
+        responsePanel.find('.outcome-container').each(function () {
+            const currentSerial = $(this).data('serial');
+            const id = $(this).find(".identifier").val();
+
+            // Skip the element with the same serial, as we're focusing on other elements
+            if (currentSerial === serial || id === 'SCORE') {
+                return;
+            }
+
+            const currentValue = $(this).find("select[name='externalScored']").val();
+
+            // If any element has a value other than 'none', disable SCORE
+            if (currentValue !== externalScoredOptions.none) {
+                shouldDisable = true;
+                return false; // Exit the loop early
+            }
+        });
+
+        return shouldDisable;
+    }
+
     /**
      * Disposes tooltips
      *
@@ -194,10 +294,23 @@ define([
                         const serial = $outcomeContainer.data('serial');
                         const outcomeElement = Element.getElementBySerial(serial);
                         const $labelContainer = $outcomeContainer.find('.identifier-label');
+                        const $incrementerContainer = $outcomeContainer.find(".incrementer");
                         const $identifierLabel = $labelContainer.find('.label');
                         const $identifierInput = $labelContainer.find('.identifier');
+                        const $outcomeValueContainer = $outcomeContainer.find('div.minimum-maximum');
+                        const isScoreOutcome = outcomeElement.attributes.identifier === 'SCORE';
                         let isScoringTraitValidationEnabled =
                             outcomeElement.attr('externalScored') === externalScoredOptions.human;
+                        if (
+                          !externalScoredValidOptions.includes(
+                            outcomeElement.attr("externalScored")
+                          )
+                        ) {
+                            $incrementerContainer.incrementer("disable");
+                            setMinumumMaximumValue(outcomeElement, $outcomeValueContainer, 0, 0);
+                        } else {
+                            $incrementerContainer.incrementer("enable");
+                        }
 
                         $outcomeContainer.addClass('editing');
                         $outcomeContainer.removeClass('editable');
@@ -206,8 +319,6 @@ define([
                         $identifierInput.focus();
                         $identifierInput.val('');
                         $identifierInput.val(outcomeElement.id());
-
-                        const $outcomeValueContainer = $outcomeContainer.find('div.minimum-maximum');
 
                         const showScoringTraitWarningOnInvalidValue = () => {
                             if (
@@ -258,6 +369,17 @@ define([
                                     externalScored(outcome, value) {
                                         //Turn off scoring trait validation if externalScored is not human
                                         isScoringTraitValidationEnabled = value === externalScoredOptions.human;
+                                        if (isScoreOutcome && value !== externalScoredOptions.none) {
+                                            $incrementerContainer.incrementer("enable");
+                                        } else if (isScoreOutcome) {
+                                            setMinumumMaximumValue(outcome, $outcomeValueContainer, 0, 0);
+                                            $incrementerContainer.incrementer("disable");
+                                        } else if (value !== externalScoredOptions.none) {
+                                            $incrementerContainer.incrementer("enable");
+                                        } else {
+                                            setMinumumMaximumValue(outcome, $outcomeValueContainer, 0, 0);
+                                            $incrementerContainer.incrementer("disable");
+                                        }
 
                                         /**
                                          * Attaches scoring trait warning tooltips when `externalScored` is `human`
@@ -279,6 +401,30 @@ define([
                                         } else {
                                             outcome.attr('externalScored', value);
                                         }
+                                        if (isScoreOutcome && value !== externalScoredOptions.none) {
+                                            // Disable other outcomes if condition is met
+                                            updateExternalScored($responsePanel, serial, function (id) {
+                                                return value !== externalScoredOptions.none;
+                                            }, true);
+                                        } else if (isScoreOutcome && value === externalScoredOptions.none) {
+                                            // Disable other outcomes if condition is met
+                                            updateExternalScored($responsePanel, serial, function (id) {
+                                                return id !== 'SCORE';
+                                            }, false);
+                                        } else if (value !== externalScoredOptions.none) {
+                                            // Disable SCORE if condition is met
+                                            updateExternalScored($responsePanel, serial, function (id) {
+                                                return id === 'SCORE';
+                                            }, true);
+                                        } else {
+                                            // Check the states of other outcomes before enabling SCORE
+                                            const shouldDisable = shouldDisableScoreBasedOnOtherVariables($responsePanel, serial);
+
+                                            // Enable or disable SCORE based on the result
+                                            updateExternalScored($responsePanel, serial, function (id) {
+                                                return id === 'SCORE';
+                                            }, shouldDisable); // Disable SCORE if any other outcomes is not 'none'
+                                        }
                                     }
                                 },
                                 formElement.getMinMaxAttributeCallbacks(
@@ -298,7 +444,7 @@ define([
                                                 value = Math.round(value);
 
                                                 outcome.attr(attr, value);
-                                                $outcomeValueContainer.find(`[name="${attr}"]`).val(value);
+                                                $outcomeValueContainer.find(`[name = "${attr}"]`).val(value);
 
                                                 if (attr === 'normalMinimum' && outcome.attr('normalMaximum') < value) {
                                                     outcome.attr('normalMaximum', value);
@@ -324,6 +470,15 @@ define([
                     .on(`click${_ns}`, '.deletable [data-role="delete"]', function () {
                         //delete the outcome
                         const $outcomeContainer = $(this).closest('.outcome-container');
+                        const serial = $outcomeContainer.data('serial');
+                        // Check the states of other outcomes before enabling SCORE
+                        const shouldDisable = shouldDisableScoreBasedOnOtherVariables($responsePanel, serial);
+
+                        // Enable or disable SCORE based on the result
+                        updateExternalScored($responsePanel, serial, function (id) {
+                            return id === 'SCORE';
+                        }, shouldDisable); // Disable SCORE if any other outcomes is not 'none'
+
                         $outcomeContainer.remove();
                         item.remove('outcomes', $outcomeContainer.data('serial'));
                     })

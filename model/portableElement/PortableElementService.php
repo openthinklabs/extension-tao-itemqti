@@ -30,6 +30,7 @@ use oat\taoQtiItem\model\portableElement\exception\PortableElementVersionIncompa
 use oat\taoQtiItem\model\portableElement\model\PortableModelRegistry;
 use oat\taoQtiItem\model\portableElement\parser\element\PortableElementDirectoryParser;
 use oat\taoQtiItem\model\portableElement\parser\element\PortableElementPackageParser;
+use oat\taoQtiItem\model\portableElement\storage\PortableElementRegistry;
 use oat\taoQtiItem\model\portableElement\validator\Validator;
 use oat\taoQtiItem\model\qti\Element;
 use oat\taoQtiItem\model\qti\interaction\CustomInteraction;
@@ -41,8 +42,8 @@ class PortableElementService implements ServiceLocatorAwareInterface
 {
     use ServiceLocatorAwareTrait;
 
-    const PORTABLE_CLASS_INTERACTION = CustomInteraction::class;
-    const PORTABLE_CLASS_INFOCONTROL = InfoControl::class;
+    public const PORTABLE_CLASS_INTERACTION = CustomInteraction::class;
+    public const PORTABLE_CLASS_INFOCONTROL = InfoControl::class;
 
     protected function getPortableModelRegistry()
     {
@@ -251,6 +252,18 @@ class PortableElementService implements ServiceLocatorAwareInterface
         return null;
     }
 
+    public function getLatestCompatibleVersionElementById(
+        string $modeId,
+        string $identifier,
+        string $targetVersion
+    ): ?PortableElementObject {
+        $model = $this->getPortableModelRegistry()->getModel($modeId);
+        /* @var $registry PortableElementRegistry */
+        $registry = $model->getRegistry();
+
+        return $registry->getLatestCompatibleVersion($identifier, $targetVersion);
+    }
+
     /**
      * Register a model from a directory based on manifest.json
      *
@@ -262,7 +275,9 @@ class PortableElementService implements ServiceLocatorAwareInterface
     {
         $object = $this->getValidPortableElementFromDirectorySource($directory);
         if (is_null($object)) {
-            throw new PortableElementNotFoundException('No valid portable element model found in the directory ' . $directory);
+            throw new PortableElementNotFoundException(
+                'No valid portable element model found in the directory ' . $directory
+            );
         }
 
         return $this->registerModel($object, $directory);
@@ -329,13 +344,24 @@ class PortableElementService implements ServiceLocatorAwareInterface
         foreach ($this->getPortableModelRegistry()->getModels() as $model) {
             $phpClass = $model->getQtiElementClassName();
             if (is_subclass_of($phpClass, $portableElementClass)) {
-                $portableElements = array_merge($portableElements, array_filter($model->getRegistry()->getLatestRuntimes($useVersionAlias), function ($data) use ($identifiers) {
-                    $portableElement = reset($data);
-                    if (!empty($portableElement) && in_array($portableElement['typeIdentifier'], $identifiers)) {
-                        return true;
-                    }
-                    return false;
-                }));
+                $portableElements = array_merge(
+                    $portableElements,
+                    array_filter(
+                        $model->getRegistry()->getLatestRuntimes($useVersionAlias),
+                        function ($data) use ($identifiers) {
+                            $portableElement = reset($data);
+
+                            if (
+                                !empty($portableElement)
+                                && in_array($portableElement['typeIdentifier'], $identifiers)
+                            ) {
+                                return true;
+                            }
+
+                            return false;
+                        }
+                    )
+                );
             }
         }
 

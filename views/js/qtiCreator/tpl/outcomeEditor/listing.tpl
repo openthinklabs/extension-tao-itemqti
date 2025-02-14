@@ -1,5 +1,5 @@
 {{#each outcomes}}
-<div class="outcome-container panel subpanel{{#if readonly}} readonly{{else}} editable deletable{{/if}}" data-serial="{{serial}}">
+<div class="outcome-container panel subpanel{{#if readonly}} readonly{{else}} editable deletable{{/if}} {{#if hidden}}hidden{{/if}}" data-serial="{{serial}}">
     <div class="identifier-label" title="{{interpretation}}">
         <span class="label">{{identifier}}</span>
         <input class="identifier"
@@ -32,7 +32,7 @@
             <label for="externalScored" class="has-icon">{{__ "External Scored"}}</label>
             <span class="icon-help tooltipstered" data-tooltip="~ .tooltip-content:first" data-tooltip-theme="info"></span>
             <div class="tooltip-content">{{__ "Select if you want the outcome declaration to be processed by an external system or human scorer. This is typically the case for items asking candidates to write an essay."}}</div>
-            <select name="externalScored" class="select2" data-has-search="false">
+            <select name="externalScored" class="select2" data-has-search="false" {{#if externalScoredDisabled}} disabled="disabled" {{/if}}>
                 {{#each externalScored}}
                     <option value="{{@key}}" {{#if selected}}selected="selected"{{/if}}>{{label}}</option>
                 {{/each}}

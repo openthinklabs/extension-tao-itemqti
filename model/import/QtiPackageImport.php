@@ -25,16 +25,18 @@ namespace oat\taoQtiItem\model\import;
 use oat\oatbox\event\EventManagerAwareTrait;
 use oat\oatbox\PhpSerializable;
 use oat\oatbox\PhpSerializeStateless;
+use oat\tao\model\featureFlag\FeatureFlagChecker;
 use oat\tao\model\import\ImportHandlerHelperTrait;
 use oat\tao\model\import\TaskParameterProviderInterface;
 use oat\taoQtiItem\model\event\QtiItemImportEvent;
 use oat\taoQtiItem\model\qti\ImportService;
 use oat\taoQtiItem\model\qti\exception\ExtractException;
 use oat\taoQtiItem\model\qti\exception\ParsingException;
-use \tao_models_classes_import_ImportHandler;
-use \helpers_TimeOutHelper;
-use \common_report_Report;
-use \Exception;
+use oat\taoQtiTest\models\classes\metadata\MetadataLomService;
+use tao_models_classes_import_ImportHandler;
+use helpers_TimeOutHelper;
+use common_report_Report;
+use Exception;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 
 /**
@@ -44,13 +46,20 @@ use Zend\ServiceManager\ServiceLocatorAwareInterface;
  * @author  Joel Bout, <joel@taotesting.com>
  * @package taoQTIItem
  */
-class QtiPackageImport implements tao_models_classes_import_ImportHandler, PhpSerializable, ServiceLocatorAwareInterface, TaskParameterProviderInterface
+class QtiPackageImport implements
+    tao_models_classes_import_ImportHandler,
+    PhpSerializable,
+    ServiceLocatorAwareInterface,
+    TaskParameterProviderInterface
 {
     use PhpSerializeStateless;
     use EventManagerAwareTrait;
     use ImportHandlerHelperTrait {
         getTaskParameters as getDefaultTaskParameters;
     }
+
+    public const METADATA_IMPORT_ELEMENT_NAME = 'metadataImport';
+    public const DISABLED_ELEMENTS = 'disabledFields';
 
     /**
      * @see tao_models_classes_import_ImportHandler::getLabel()
@@ -66,7 +75,6 @@ class QtiPackageImport implements tao_models_classes_import_ImportHandler, PhpSe
     public function getForm()
     {
         $form = new QtiPackageImportForm();
-
         return $form->getForm();
     }
 
@@ -82,19 +90,31 @@ class QtiPackageImport implements tao_models_classes_import_ImportHandler, PhpSe
     {
         try {
             // for backward compatibility
-            $rollbackInfo = $form instanceof \tao_helpers_form_Form ? (array) $form->getValue('rollback') : (array) $form['rollback'];
+            $rollbackInfo = $form instanceof \tao_helpers_form_Form
+                ? (array) $form->getValue('rollback')
+                : (array) $form['rollback'];
 
             $uploadedFile = $this->fetchUploadedFile($form);
 
             //the zip extraction is a long process that can exced the 30s timeout
             helpers_TimeOutHelper::setTimeOutLimit(helpers_TimeOutHelper::LONG);
 
+            $isImportMetadataEnabled = false;
+            if (isset($form[QtiPackageImportForm::METADATA_FORM_ELEMENT_NAME])) {
+                $isImportMetadataEnabled = (bool) $form[QtiPackageImportForm::METADATA_FORM_ELEMENT_NAME] === true;
+            }
+
             $report = ImportService::singleton()->importQTIPACKFile(
                 $uploadedFile,
                 $class,
                 true,
                 in_array('error', $rollbackInfo),
-                in_array('warning', $rollbackInfo)
+                in_array('warning', $rollbackInfo),
+                null,
+                null,
+                null,
+                null,
+                $isImportMetadataEnabled
             );
 
             helpers_TimeOutHelper::reset();
@@ -105,11 +125,19 @@ class QtiPackageImport implements tao_models_classes_import_ImportHandler, PhpSe
                 $this->getEventManager()->trigger(new QtiItemImportEvent($report));
             }
         } catch (ExtractException $e) {
-            $report = common_report_Report::createFailure(__('The ZIP archive containing the IMS QTI Item cannot be extracted.'));
+            $report = common_report_Report::createFailure(
+                __('The ZIP archive containing the IMS QTI Item cannot be extracted.')
+            );
         } catch (ParsingException $e) {
-            $report = common_report_Report::createFailure(__('The ZIP archive does not contain an imsmanifest.xml file or is an invalid ZIP archive.'));
+            $report = common_report_Report::createFailure(
+                __('The ZIP archive does not contain an imsmanifest.xml file or is an invalid ZIP archive.')
+            );
         } catch (Exception $e) {
-            $report = common_report_Report::createFailure(__('An unexpected error occurred during the import of the IMS QTI Item Package. The system returned the following error: "%s"', $e->getMessage()));
+            $report = common_report_Report::createFailure(
+                // phpcs:disable Generic.Files.LineLength
+                __('An unexpected error occurred during the import of the IMS QTI Item Package. The system returned the following error: "%s"', $e->getMessage())
+                // phpcs:enable Generic.Files.LineLength
+            );
         }
 
         return $report;
@@ -126,6 +154,9 @@ class QtiPackageImport implements tao_models_classes_import_ImportHandler, PhpSe
         return array_merge(
             [
                 'rollback' => $form->getValue('rollback'),
+                QtiPackageImportForm::METADATA_FORM_ELEMENT_NAME => $form->getValue(
+                    QtiPackageImportForm::METADATA_FORM_ELEMENT_NAME
+                ) ?? null,
             ],
             $this->getDefaultTaskParameters($form)
         );

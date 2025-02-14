@@ -21,12 +21,29 @@ define([
     'jquery',
     'ckeditor',
     'core/promise',
+    'services/features',
     'taoQtiItem/qtiCreator/helper/ckConfigurator',
     'taoQtiItem/qtiItem/core/Element',
     'taoQtiItem/qtiCreator/widgets/helpers/content',
     'taoQtiItem/qtiCreator/widgets/helpers/deletingState',
-    'taoQtiItem/qtiCreator/editor/ckEditor/featureFlag'
-], function (_, __, $, CKEditor, Promise, ckConfigurator, Element, contentHelper, deletingHelper, featureFlag) {
+    'taoQtiItem/qtiCreator/editor/ckEditor/featureFlag',
+    'taoQtiItem/qtiCreator/helper/languages',
+    'taoQtiItem/qtiCreator/helper/elementSupport',
+], function (
+    _,
+    __,
+    $,
+    CKEditor,
+    Promise,
+    features,
+    ckConfigurator,
+    Element,
+    contentHelper,
+    deletingHelper,
+    featureFlag,
+    languages,
+    elementSupportHelper
+) {
     'use strict';
 
     const _defaults = {
@@ -37,6 +54,7 @@ define([
     };
 
     const placeholderClass = 'cke-placeholder';
+    const languagePluginEnabled = features.isVisible('taoQtiItem/creator/editor/ckEditor/languagePlugin', false);
 
     let editorFactory;
 
@@ -52,6 +70,7 @@ define([
      * @param {Boolean} [options.passthroughInnerContent] - define if the inner widget content should be accessible directly or not
      * @param {String} [options.removePlugins] - a coma-separated list of plugins that should not be loaded: 'plugin1,plugin2,plugin3'
      * @param {Boolean} [options.autofocus] - automatically focus
+     * @param {Boolean?} [options.flushDeletingWidgetsOnDestroy] - before editor destroy, remove widgets which are waiting for delete confirmation
      * @returns {Object} CKEditor
      */
     function _buildEditor($editable, $editableContainer, options) {
@@ -60,6 +79,26 @@ define([
             $toolbarArea = areaBroker && areaBroker.getToolbarArea && areaBroker.getToolbarArea();
 
         options = _.defaults(options, _defaults);
+
+        const isHiddenPlugin = pluginName => !features.isVisible(`taoQtiItem/creator/content/plugin/${pluginName}`);
+
+        const registeredPluginNames = CKEditor.plugins.registered && Object.keys(CKEditor.plugins.registered);
+        const removePlugins = [];
+        registeredPluginNames.forEach(pluginName => {
+            if (isHiddenPlugin(pluginName)) {
+                removePlugins.push(pluginName);
+            }
+        });
+
+        if (options.removePlugins) {
+            options.removePlugins.split(',').forEach(removePluginName => {
+                removePlugins.push(removePluginName.trim());
+            });
+        }
+
+        if (!languagePluginEnabled) {
+            removePlugins.push('taolanguage');
+        }
 
         if (!($editable instanceof $) || !$editable.length) {
             throw new Error('invalid jquery element for $editable');
@@ -79,9 +118,10 @@ define([
         const ckConfig = {
             dtdMode: 'qti',
             autoParagraph: false,
-            removePlugins: options.removePlugins || '',
+            removePlugins: removePlugins.join(','),
             enterMode: options.enterMode || CKEditor.ENTER_P,
             floatSpaceDockedOffsetY: 10,
+            language_list: options.language_list,
             sharedSpaces: {
                 top: ($toolbarArea && $toolbarArea.attr('id')) || 'toolbar-top'
             },
@@ -93,6 +133,16 @@ define([
                 insert: function (tempWidget) {
                     const $newContent = $(tempWidget).clone(); // we keep the original content for later use
                     if (options.data && options.data.container && options.data.widget) {
+                        const $newImgPlaceholder = $editable.find('[data-new="true"][data-qti-class="img"]');
+                        if (
+                            $newImgPlaceholder.length &&
+                            elementSupportHelper.isFigureSupportedInParent($newImgPlaceholder)
+                        ) {
+                            // instead img will add figure element
+                            $newImgPlaceholder.attr('data-qti-class', 'figure');
+                            // span after for new line
+                            $('<span>&nbsp;</span>').insertAfter($newImgPlaceholder);
+                        }
                         contentHelper.createElements(
                             options.data.container,
                             $editable,
@@ -108,6 +158,9 @@ define([
                                 _activateInnerWidget(options.data.widget, createdWidget);
                             }
                         );
+                        // hide toolbar to prevent double click
+                        const editor = $editable.data('editor');
+                        editor.focusManager.blur(true);
                     }
                 }
             },
@@ -200,6 +253,9 @@ define([
                     if (typeof options.highlight !== 'undefined') {
                         ckConfig.highlight = options.highlight;
                     }
+                    if (typeof options.mathJax !== 'undefined') {
+                        ckConfig.mathJax = options.mathJax;
+                    }
 
                     e.editor.config = ckConfigurator.getConfig(e.editor, toolbarType, ckConfig);
                 },
@@ -234,7 +290,7 @@ define([
      * @param {JQuery} $editable
      */
     function togglePlaceholder($editable) {
-        const nonEmptyContent = ['img', 'table', 'math', 'object', 'printedVariable', '.tooltip-target'];
+        const nonEmptyContent = ['img', 'table', 'math', 'object', 'printedVariable', '.tooltip-target', 'figure'];
 
         if ($editable.text().trim() === '' && !$editable.find(nonEmptyContent.join(',')).length) {
             $editable.addClass(placeholderClass);
@@ -302,9 +358,9 @@ define([
         options = options || {};
 
         //re-init all widgets:
-        _.each(_.values(container.elements), function (elt) {
-            const widget = elt.data('widget'),
-                currentState = widget.getCurrentState().name;
+        _.forEach(_.values(container.elements), function (elt) {
+            const widget = elt.data('widget');
+            const currentState = widget.getCurrentState().name;
 
             widgets[elt.serial] = widget.rebuild({
                 context: $container,
@@ -320,6 +376,25 @@ define([
         $container.trigger('widgetCreated', [widgets, container]);
 
         return widgets;
+    }
+
+    /**
+     * Before destroying editor, remove widgets in "deleting" state.
+     * @param {*} container
+     * @param {*} $container
+     * @param {*} options
+     * @returns
+     */
+    function _flushDeletingWidgets(container) {
+        _.forEach(_.values(container.elements), function (elt) {
+            const widget = elt.data('widget');
+            const currentState = widget.getCurrentState().name;
+
+            //"exit" from "deleting" state will do actual deletion
+            if (currentState === 'deleting') {
+                widget.changeState('sleep');
+            }
+        });
     }
 
     /**
@@ -346,7 +421,7 @@ define([
         const deleted = [];
         const container = $container.data('qti-container');
 
-        _.each(widgets, function (w) {
+        _.forEach(widgets, function (w) {
             if (!w.element.data('removed')) {
                 const $widget = _findWidgetContainer($container, w.serial);
                 if (!$widget.length) {
@@ -361,7 +436,7 @@ define([
 
             $messageBox
                 .on('confirm.deleting', function () {
-                    _.each(deleted, function (w) {
+                    _.forEach(deleted, function (w) {
                         w.element.remove();
                         w.destroy();
                     });
@@ -528,27 +603,37 @@ define([
          * @param {Boolean} [editorOptions.shieldInnerContent] - define if the inner widget content should be protected or not
          * @param {Boolean} [editorOptions.passthroughInnerContent] - define if the inner widget content should be accessible directly or not
          * @param {Boolean} [editorOptions.enterMode] - what is the behavior of the "Enter" key (see ENTER_MODE_xxx in ckEditor configuration)
+         * @param {String} [editorOptions.removePlugins] - comma-separated list of plugins to disable
          * @returns {undefined}
          */
         buildEditor: function ($container, editorOptions) {
-            const buildTasks = [];
-            _find($container, 'html-editable-container').each(function () {
-                const $editableContainer = $(this),
-                    $editable = $editableContainer.find('[data-html-editable]');
+            return languages
+                .getList()
+                .then(languages.useCKEFormatting)
+                .then(languagesData => {
+                    const buildTasks = [];
 
-                buildTasks.push(
-                    new Promise(function (resolve) {
-                        //need to make the element html editable to enable ck inline editing:
-                        $editable.attr('contenteditable', true);
+                    editorOptions.language_list = languagesData;
 
-                        //build it
-                        _buildEditor($editable, $editableContainer, editorOptions);
+                    _find($container, 'html-editable-container').each(function () {
+                        const $editableContainer = $(this),
+                            $editable = $editableContainer.find('[data-html-editable]');
 
-                        $editable.on('editorready', resolve);
-                    })
-                );
-            });
-            return Promise.all(buildTasks);
+                        buildTasks.push(
+                            new Promise(function (resolve) {
+                                //need to make the element html editable to enable ck inline editing:
+                                $editable.attr('contenteditable', true);
+
+                                //build it
+                                _buildEditor($editable, $editableContainer, editorOptions);
+
+                                $editable.on('editorready', resolve);
+                            })
+                        );
+                    });
+
+                    return Promise.all(buildTasks);
+                });
         },
         /**
          * Destroy the editor
@@ -568,6 +653,10 @@ define([
                         new Promise(function (resolve) {
                             const editor = $editable.data('editor');
                             const options = $editable.data('editor-options');
+
+                            if (options.flushDeletingWidgetsOnDestroy && $editable.data('qti-container')) {
+                                _flushDeletingWidgets($editable.data('qti-container'));
+                            }
 
                             //before destroying, ensure that data is stored
                             if (_.isFunction(options.change)) {

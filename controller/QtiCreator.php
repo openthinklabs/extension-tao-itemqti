@@ -28,7 +28,12 @@ use core_kernel_classes_Resource;
 use oat\generis\model\data\event\ResourceUpdated;
 use oat\generis\model\OntologyAwareTrait;
 use oat\oatbox\event\EventManager;
+use oat\tao\model\featureFlag\FeatureFlagChecker;
+use oat\tao\model\featureFlag\FeatureFlagCheckerInterface;
+use oat\tao\model\featureFlag\FeatureFlagConfigSwitcher;
 use oat\tao\model\http\HttpJsonResponseTrait;
+use oat\tao\model\IdentifierGenerator\Generator\IdentifierGeneratorInterface;
+use oat\tao\model\IdentifierGenerator\Generator\IdentifierGeneratorProxy;
 use oat\tao\model\media\MediaService;
 use oat\tao\model\TaoOntology;
 use oat\taoItems\model\event\ItemCreatedEvent;
@@ -40,7 +45,6 @@ use oat\taoQtiItem\model\HookRegistry;
 use oat\taoQtiItem\model\ItemModel;
 use oat\taoQtiItem\model\qti\event\UpdatedItemEventDispatcher;
 use oat\taoQtiItem\model\qti\exception\QtiModelException;
-use oat\taoQtiItem\model\qti\Item;
 use oat\taoQtiItem\model\qti\parser\XmlToItemParser;
 use oat\taoQtiItem\model\qti\Service;
 use oat\taoQtiItem\model\qti\validator\ItemIdentifierValidator;
@@ -160,7 +164,6 @@ class QtiCreator extends tao_actions_CommonModule
 
     public function getItemData()
     {
-
         $returnValue = [
             'itemData' => null
         ];
@@ -170,12 +173,16 @@ class QtiCreator extends tao_actions_CommonModule
             $itemUri = tao_helpers_Uri::decode($this->getRequestParameter('uri'));
             $itemResource = new core_kernel_classes_Resource($itemUri);
 
-            $item = Service::singleton()->getDataItemByRdfItem($itemResource, $lang, false);//do not resolve xinclude here, leave it to the client side
-            if (!is_null($item)) {
-                $returnValue['itemData'] = $item->toArray();
-            }
+            // do not resolve xinclude here, leave it to the client side
+            $item = Service::singleton()->getDataItemByRdfItem($itemResource, $lang, false);
 
-            $availableLangs = \tao_helpers_I18n::getAvailableLangsByUsage(new core_kernel_classes_Resource(TaoOntology::PROPERTY_STANCE_LANGUAGE_USAGE_DATA));
+            $returnValue['itemData'] = $item
+                ? $item->toArray()
+                : ['identifier' => $this->getItemIdentifier($itemResource)];
+
+            $availableLangs = \tao_helpers_I18n::getAvailableLangsByUsage(
+                new core_kernel_classes_Resource(TaoOntology::PROPERTY_STANCE_LANGUAGE_USAGE_DATA)
+            );
             $returnValue['languagesList'] = $availableLangs;
         }
 
@@ -270,8 +277,7 @@ class QtiCreator extends tao_actions_CommonModule
 
         $config = new CreatorConfig();
 
-        $ext = \common_ext_ExtensionsManager::singleton()->getExtensionById('taoQtiItem');
-        $creatorConfig = $ext->getConfig('qtiCreator');
+        $creatorConfig = $this->getFeatureFlagConfigSwitcher()->getSwitchedExtensionConfig('taoQtiItem', 'qtiCreator');
 
         if (is_array($creatorConfig)) {
             foreach ($creatorConfig as $prop => $value) {
@@ -287,6 +293,10 @@ class QtiCreator extends tao_actions_CommonModule
         $lang = \common_session_SessionManager::getSession()->getDataLanguage();
         $config->setProperty('lang', $lang);
 
+        // Add support for translation and side-by-side view
+        $config->setProperty('translation', $this->getRequestParameter('translation'));
+        $config->setProperty('originResourceUri', $this->getRequestParameter('originResourceUri'));
+
         //base url:
         $url = tao_helpers_Uri::url('getFile', 'QtiCreator', 'taoQtiItem', [
             'uri' => $item->getUri(),
@@ -301,7 +311,10 @@ class QtiCreator extends tao_actions_CommonModule
             $config->addPlugin('blockAdder', 'taoQtiItem/qtiCreator/plugins/content/blockAdder', 'content');
         }
 
-        if ($config->getProperty('scrollable-multi-column') === true) {
+        if (
+            $config->getProperty('scrollable-multi-column') === true ||
+            $config->getProperty('separator-between-columns') === true
+        ) {
             $config->addPlugin('layoutEditor', 'taoQtiItem/qtiCreator/plugins/panel/layoutEditor', 'panel');
         }
 
@@ -340,6 +353,11 @@ class QtiCreator extends tao_actions_CommonModule
         return $this->getServiceLocator()->getContainer()->get(ItemIdentifierValidator::class);
     }
 
+    private function getFeatureFlagConfigSwitcher(): FeatureFlagConfigSwitcher
+    {
+        return $this->getServiceLocator()->getContainer()->get(FeatureFlagConfigSwitcher::class);
+    }
+
     /**
      * Check if given string is a valid xml. Throw common_exception_Error if not.
      *
@@ -352,5 +370,28 @@ class QtiCreator extends tao_actions_CommonModule
             throw new common_exception_Error('Empty string given');
         }
         \tao_helpers_Xml::getSimpleXml($xml);
+    }
+
+    private function getItemIdentifier(core_kernel_classes_Resource $item): ?string
+    {
+        if ($this->getFeatureFlagChecker()->isEnabled('FEATURE_FLAG_UNIQUE_NUMERIC_QTI_IDENTIFIER')) {
+            $uniqueId = $item->getOnePropertyValue($this->getProperty(TaoOntology::PROPERTY_UNIQUE_IDENTIFIER));
+
+            if (!empty($uniqueId)) {
+                return $uniqueId;
+            }
+        }
+
+        return $this->getIdentifierGenerator()->generate([IdentifierGeneratorInterface::OPTION_RESOURCE => $item]);
+    }
+
+    private function getIdentifierGenerator(): IdentifierGeneratorInterface
+    {
+        return $this->getServiceLocator()->getContainer()->get(IdentifierGeneratorProxy::class);
+    }
+
+    private function getFeatureFlagChecker(): FeatureFlagCheckerInterface
+    {
+        return $this->getServiceLocator()->getContainer()->get(FeatureFlagChecker::class);
     }
 }

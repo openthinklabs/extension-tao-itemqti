@@ -15,13 +15,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2021 (original work) Open Assessment Technologies SA;
+ * Copyright (c) 2022 (original work) Open Assessment Technologies SA;
  */
 
 declare(strict_types=1);
 
 namespace oat\taoQtiItem\model\qti\asset\factory;
 
+use core_kernel_classes_Class;
 use Laminas\ServiceManager\ServiceLocatorAwareTrait;
 use oat\oatbox\service\ConfigurableService;
 use oat\oatbox\user\UserLanguageService;
@@ -29,55 +30,75 @@ use oat\tao\model\GenerisServiceTrait;
 use oat\taoMediaManager\model\MediaService;
 use oat\taoMediaManager\model\sharedStimulus\service\StoreService;
 use oat\taoQtiItem\model\Export\AbstractQTIItemExporter;
+use oat\taoQtiItem\model\qti\ImportService;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 
 class SharedStimulusFactory extends ConfigurableService
 {
     use ServiceLocatorAwareTrait;
     use GenerisServiceTrait;
 
-    private const ASSET_ROOT_CLASS_URI = 'http://www.tao.lu/Ontologies/TAOMedia.rdf#Media';
+    private const MEDIA_ROOT_CLASS = 'http://www.tao.lu/Ontologies/TAOMedia.rdf#Media';
 
     public function createShardedStimulusFromSourceFiles(
         string $newXmlFile,
         string $relativePath,
         string $absolutePath,
-        string $label
+        array $targetClassPath
     ): string {
         $assetWithCss = $this->getStoreService()->store(
             $newXmlFile,
             basename($relativePath),
-            [
-                $this->getRelatedCssFilePath($absolutePath)
-            ]
+            $this->getRelatedCssFilePath($absolutePath)
         );
 
         return $this->getMediaService()->createSharedStimulusInstance(
             $assetWithCss . DIRECTORY_SEPARATOR . basename($relativePath),
-            $this->getParentClassUri($label),
+            $this->buildParentClassUri($targetClassPath),
             $this->getUserLanguageService()->getAuthoringLanguage()
         );
     }
 
-    private function getRelatedCssFilePath(string $absolutePath): string
+    private function getRelatedCssFilePath(string $absolutePath): array
     {
-        return implode(
+        $cssSubDirectory = implode(
             DIRECTORY_SEPARATOR,
             [
                 dirname($absolutePath),
-                AbstractQTIItemExporter::CSS_DIRECTORY_NAME,
-                AbstractQTIItemExporter::CSS_FILE_NAME
+                AbstractQTIItemExporter::CSS_DIRECTORY_NAME
             ]
         );
-    }
 
-    private function getParentClassUri(string $label): string
-    {
-        $parentClass = $this->createSubClass(
-            $this->getClass(self::ASSET_ROOT_CLASS_URI),
-            $label
+        if (!is_dir($cssSubDirectory)) {
+            return [];
+        }
+
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($cssSubDirectory),
+            RecursiveIteratorIterator::LEAVES_ONLY
         );
 
-        return $parentClass->getUri();
+        $cssFiles = [];
+
+        /** @var $file SplFileInfo */
+        foreach ($iterator as $file) {
+            if ($this->isFileExtension($file, 'css')) {
+                $cssFiles[] = $file->getRealPath();
+            }
+        }
+
+        return $cssFiles;
+    }
+
+    public function isFileExtension(SplFileInfo $file, string $extension): bool
+    {
+        if ($file->isFile()) {
+            return preg_match('/^[\w]/', $file->getFilename()) === 1 && $file->getExtension() === $extension;
+        }
+
+        return false;
     }
 
     private function getStoreService(): StoreService
@@ -93,5 +114,18 @@ class SharedStimulusFactory extends ConfigurableService
     private function getUserLanguageService(): UserLanguageService
     {
         return $this->getServiceLocator()->get(UserLanguageService::SERVICE_ID);
+    }
+
+    private function buildParentClassUri(array $labelPath): string
+    {
+        $mediaClass = $this->getClass(self::MEDIA_ROOT_CLASS);
+
+        // Creating same classes in the media root
+        foreach ($labelPath as $classLabel) {
+            $mediaClass = $mediaClass->retrieveSubClassByLabel($classLabel)
+                ?: $mediaClass->createSubClass($classLabel);
+        }
+
+        return $mediaClass->getUri();
     }
 }

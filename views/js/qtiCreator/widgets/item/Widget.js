@@ -56,7 +56,7 @@ define([
 
     const _detachElements = function (container, elements) {
         const containerElements = {};
-        _.each(elements, function (elementSerial) {
+        _.forEach(elements, function (elementSerial) {
             containerElements[elementSerial] = container.elements[elementSerial];
             delete container.elements[elementSerial];
         });
@@ -135,7 +135,9 @@ define([
                 reject(err);
             }
 
-            const xml = xmlNsHandler.restoreNs(xmlRenderer.render(this.element), this.element.getNamespaces());
+            const xml = xmlNsHandler
+                .restoreNs(xmlRenderer.render(this.element), this.element.getNamespaces(), true)
+                .replace(/&lcub;/g, '{');
 
             //@todo : remove this hotfix : prevent unsupported custom interaction to be saved
             if (hasUnsupportedInteraction(xml)) {
@@ -363,7 +365,7 @@ define([
                 if (_.size(newElts) !== subContainers.length) {
                     throw new Error('number of sub-containers mismatch');
                 } else {
-                    _.each(newElts, container => {
+                    _.forEach(newElts, container => {
                         const containerData = subContainers.shift(); //get data in order
                         const containerElements = _detachElements(itemBody, containerData.elements);
 

@@ -15,28 +15,29 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2008-2010 (original work) Deutsche Institut für Internationale Pädagogische Forschung (under the project TAO-TRANSFER);
- *               2009-2012 (update and modification) Public Research Centre Henri Tudor (under the project TAO-SUSTAIN & TAO-DEV);
+ * Copyright (c) 2008-2010 (original work) Deutsche Institut für Internationale Pädagogische Forschung
+ *                         (under the project TAO-TRANSFER);
+ *               2009-2012 (update and modification) Public Research Centre Henri Tudor
+ *                         (under the project TAO-SUSTAIN & TAO-DEV);
  *               2013-2016 (update and modification) Open Assessment Technologies SA (under the project TAO-PRODUCT);
- *
  */
 
 namespace oat\taoQtiItem\model\Export;
 
-use oat\taoQtiItem\model\portableElement\exception\PortableElementException;
+use oat\tao\model\featureFlag\FeatureFlagChecker;
 use oat\taoQtiItem\model\qti\exception\ExportException;
 use oat\taoQtiItem\model\qti\Service;
-use \core_kernel_classes_Resource;
-use \ZipArchive;
-use \DOMDocument;
-use \tao_helpers_Uri;
-use \taoItems_models_classes_TemplateRenderer;
-use \tao_helpers_Display;
-use \common_Exception;
+use core_kernel_classes_Resource;
+use oat\taoQtiTest\models\classes\metadata\GenericLomOntologyExtractor;
+use oat\taoQtiTest\models\classes\metadata\MetadataLomService;
+use ZipArchive;
+use DOMDocument;
+use tao_helpers_Uri;
+use taoItems_models_classes_TemplateRenderer;
+use tao_helpers_Display;
 
 class QTIPackedItemExporter extends AbstractQTIItemExporter
 {
-
     private $manifest;
 
     /**
@@ -140,7 +141,7 @@ class QTIPackedItemExporter extends AbstractQTIItemExporter
                     $qtiFile = $fileName;
                 } else {
                     if (!empty($fileName)) {
-                        $qtiResources[] = htmlspecialchars($fileName, ENT_QUOTES|ENT_XML1);
+                        $qtiResources[] = htmlspecialchars($fileName, ENT_QUOTES | ENT_XML1);
                     }
                 }
             }
@@ -151,7 +152,7 @@ class QTIPackedItemExporter extends AbstractQTIItemExporter
         //@todo add support of multi language packages
         $rdfItem = $this->getItem();
         $qtiItem = $qtiItemService->getDataItemByRdfItem($rdfItem);
-
+        $qtiItem->validateOutcomes();
         if (!is_null($qtiItem)) {
             // -- Prepare data transfer to the imsmanifest.tpl template.
             $qtiItemData = [];
@@ -161,7 +162,7 @@ class QTIPackedItemExporter extends AbstractQTIItemExporter
             $qtiItemData['filePath'] = $qtiFile;
             $qtiItemData['medias'] = $qtiResources;
             $qtiItemData['adaptive'] = ($qtiItem->getAttributeValue('adaptive') === 'adaptive') ? true : false;
-            $qtiItemData['timeDependent'] = ($qtiItem->getAttributeValue('timeDependent') === 'timeDependent') ? true : false;
+            $qtiItemData['timeDependent'] = $qtiItem->getAttributeValue('timeDependent') === 'timeDependent';
             $qtiItemData['toolName'] = $qtiItem->getAttributeValue('toolVendor');
             $qtiItemData['toolVersion'] = $qtiItem->getAttributeValue('toolVersion');
             $qtiItemData['interactions'] = [];
@@ -199,6 +200,7 @@ class QTIPackedItemExporter extends AbstractQTIItemExporter
 
             $manifest = $this->getManifest();
             $this->getMetadataExporter()->export($this->getItem(), $manifest);
+            $this->injectMetadataToManifest($manifest, $this->getItem());
             $this->setManifest($manifest);
 
 
@@ -221,7 +223,9 @@ class QTIPackedItemExporter extends AbstractQTIItemExporter
     {
         $asApip = isset($options['apip']) && $options['apip'] === true;
         $dir = \common_ext_ExtensionsManager::singleton()->getExtensionById('taoQtiItem')->getDir();
-        $tpl = ($asApip === false) ? $dir . 'model/qti/templates/imsmanifest.tpl.php' : $dir . 'model/qti/templates/imsmanifestApip.tpl.php';
+        $tpl = ($asApip === false)
+            ? $dir . 'model/qti/templates/imsmanifest.tpl.php'
+            : $dir . 'model/qti/templates/imsmanifestApip.tpl.php';
 
         $templateRenderer = new taoItems_models_classes_TemplateRenderer($tpl, [
             'qtiItems' => [$qtiItemData],
@@ -244,5 +248,21 @@ class QTIPackedItemExporter extends AbstractQTIItemExporter
     protected function getQTIVersion(): string
     {
         return '2p1';
+    }
+
+    private function injectMetadataToManifest($manifest, core_kernel_classes_Resource $item)
+    {
+        $this->genericLomOntologyExtractor()->extract(
+            [$item],
+            $manifest
+        );
+    }
+    private function genericLomOntologyExtractor(): GenericLomOntologyExtractor
+    {
+        return $this->getServiceManager()->getContainer()->get(GenericLomOntologyExtractor::class);
+    }
+    private function getFeatureFlagChecker(): FeatureFlagChecker
+    {
+        return $this->getServiceManager()->getContainer()->get(FeatureFlagChecker::class);
     }
 }
