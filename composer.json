@@ -62,13 +62,13 @@
     "minimum-stability": "dev",
     "require": {
         "ext-simplexml": "*",
-        "oat-sa/lib-tao-qti": "^7.8.1",
-        "oat-sa/oatbox-extension-installer": "~1.1||dev-master",
+        "openthinklabs/lib-tao-qti": "dev-master",
+        "openthinklabs/oatbox-extension-installer": "dev-master",
         "naneau/semver": "~0.0.7",
-        "oat-sa/generis": ">=16.0.0",
-        "oat-sa/tao-core": ">=54.30.0",
-        "oat-sa/extension-tao-item": ">=12.4.0",
-        "oat-sa/extension-tao-test": ">=16.3.0"
+        "openthinklabs/generis": "dev-master",
+        "openthinklabs/tao-core": "dev-master",
+        "openthinklabs/extension-tao-item": "dev-master",
+        "openthinklabs/extension-tao-test": "dev-master"
     },
     "autoload": {
         "psr-4": {
