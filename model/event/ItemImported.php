@@ -25,6 +25,7 @@ use oat\oatbox\event\Event;
 
 class ItemImported implements Event
 {
+    
     /**
      * The Qti Item model object
      * @var \oat\taoQtiItem\model\qti\Item

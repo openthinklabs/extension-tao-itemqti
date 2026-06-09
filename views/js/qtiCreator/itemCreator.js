@@ -13,14 +13,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2016-2024 (original work) Open Assessment Technologies SA ;
+ * Copyright (c) 2016-2021 (original work) Open Assessment Technologies SA ;
  *
  */
 
 /**
  * The item creator factory let's you create (guess what...)
  *
- * The item creator is "unfinished" because all parts aren't yet independent and the loading is anarchic,
+ * The item creator is "unfinished" because all parts aren't yet independants and the loading is anarhic,
  * however the item creator does a 1st job of wrapping the item creator's bootstrap.
  *
  *
@@ -30,6 +30,7 @@ define([
     'jquery',
     'lodash',
     'i18n',
+    'module',
     'core/eventifier',
     'core/promise',
     'taoQtiItem/portableElementRegistry/ciRegistry',
@@ -47,6 +48,7 @@ define([
     $,
     _,
     __,
+    module,
     eventifier,
     Promise,
     ciRegistry,
@@ -69,15 +71,14 @@ define([
      * @param {String} label - the item label
      * @param {String} itemDataUrl - the data url
      * @param {Boolean} perInteractionRp - per interaction processing enabled
-     * @param {String} identifierGenerationStrategy - per interaction processing enabled
      *
      * @returns {Promise} that resolve with the loaded item model
      */
-    function loadItem(uri, label, itemDataUrl, perInteractionRp, identifierGenerationStrategy) {
-        return new Promise((resolve, reject) => {
+    const loadItem = function loadItem(uri, label, itemDataUrl, perInteractionRp) {
+        return new Promise(function (resolve, reject) {
             itemLoader.loadItem(
-                { uri: uri, label: label, itemDataUrl: itemDataUrl, perInteractionRp, identifierGenerationStrategy },
-                item => {
+                { uri: uri, label: label, itemDataUrl: itemDataUrl, perInteractionRp },
+                function (item) {
                     if (!item) {
                         reject(new Error('Unable to load the item'));
                     }
@@ -88,7 +89,7 @@ define([
                 }
             );
         });
-    }
+    };
 
     /**
      * load custom interactions registered from the custom interaction registry
@@ -96,20 +97,20 @@ define([
      * @param {Array} interactionsIds
      * @returns {Promise} that resolve with the loaded item model
      */
-    function loadCustomInteractions(interactionsIds) {
+    const loadCustomInteractions = function loadCustomInteractions(interactionsIds) {
         return ciRegistry.loadCreators({
             include: interactionsIds
         });
-    }
+    };
 
     /**
      * load info controls registered from the info control registry
      *
      * @returns {Promise} that resolve with the loaded item model
      */
-    function loadInfoControls() {
+    const loadInfoControls = function loadInfoControls() {
         return icRegistry.loadCreators();
-    }
+    };
 
     /**
      * Build a new Item Creator
@@ -136,17 +137,17 @@ define([
          * @param {String} method - the method to run
          * @returns {Promise} once that resolve when all plugins are done
          */
-        function pluginRun(method) {
+        const pluginRun = function pluginRun(method) {
             const execStack = [];
 
-            _.forEach(plugins, plugin => {
+            _.forEach(plugins, function (plugin) {
                 if (_.isFunction(plugin[method])) {
                     execStack.push(plugin[method]());
                 }
             });
 
             return Promise.all(execStack);
-        }
+        };
 
         //validate parameters
         if (!_.isPlainObject(config)) {
@@ -180,10 +181,12 @@ define([
              * @fires itemCreator#init - once initialized
              * @fires itemCreator#error - if something went wrong
              */
-            init() {
+            init: function init() {
+                const self = this;
+
                 //instantiate the plugins first
-                _.forEach(pluginFactories, pluginFactory => {
-                    const plugin = pluginFactory(this, areaBroker);
+                _.forEach(pluginFactories, function (pluginFactory) {
+                    const plugin = pluginFactory(self, areaBroker);
                     plugins[plugin.getName()] = plugin;
                 });
 
@@ -198,7 +201,7 @@ define([
                  * @fires itemCreator#saved once the save is done
                  * @fires itemCreator#error
                  */
-                this.on('save', silent => {
+                this.on('save', function (silent) {
                     const item = this.getItem();
                     const itemWidget = item.data('widget');
                     const invalidElements = item.data('invalid') || {};
@@ -210,7 +213,7 @@ define([
                                 reasons.push(invalidElements[serial][key].message);
                             });
                         });
-                        this.trigger('error', new Error(`${__('Item cannot be saved.')} (${reasons.join(', ')}).`));
+                        self.trigger('error', new Error(`${__('Item cannot be saved.')} (${reasons.join(', ')}).`));
                         return;
                     }
                     //do the save
@@ -218,15 +221,16 @@ define([
                         .then(() => styleEditor.save())
                         .then(() => itemWidget.save())
                         .then(() => {
-                            if (!silent) {
-                                this.trigger('success', __('Your item has been saved'));
+                            if (!silent){
+                                self.trigger('success', __('Your item has been saved'));
                             }
-                            this.trigger('saved');
-                        })
-                        .catch(err => this.trigger('error', err));
+                            self.trigger('saved');
+                        }).catch(err => {
+                            self.trigger('error', err);
+                        });
                 });
 
-                this.on('exit', () => {
+                this.on('exit', function () {
                     $('.item-editor-item', areaBroker.getItemPanelArea()).empty();
                     styleEditor.cleanCache();
                 });
@@ -236,29 +240,28 @@ define([
                     config.properties.uri,
                     config.properties.label,
                     config.properties.itemDataUrl,
-                    config.properties.perInteractionRp,
-                    config.properties.identifierGenerationStrategy
+                    config.properties.perInteractionRp
                 )
-                    .then(item => {
+                    .then(function (item) {
                         if (!_.isObject(item)) {
-                            this.trigger('error', new Error(`Unable to load the item ${config.properties.label}`));
+                            self.trigger('error', new Error(`Unable to load the item ${config.properties.label}`));
                             return;
                         }
 
-                        _.forEach(item.getComposingElements(), element => {
+                        _.forEach(item.getComposingElements(), function (element) {
                             if (element.is('customInteraction')) {
                                 usedCustomInteractionIds.push(element.typeIdentifier);
                             }
                         });
 
-                        this.item = item;
+                        self.item = item;
                         return true;
                     })
                     .then(() => {
-                        const item = this.item;
+                        const item = self.item;
 
                         // To migrate old test items to use per interaction response processing
-                        // missing outcome declarations should be added
+                        // missing aoutcome declarations should be added
                         if (
                             item.responseProcessing.processingType === 'templateDriven' &&
                             config.properties.perInteractionRp
@@ -279,31 +282,35 @@ define([
                             });
                         }
                     })
-                    .then(() => {
+                    .then(function () {
                         //load custom elements
                         return Promise.all([loadCustomInteractions(usedCustomInteractionIds), loadInfoControls()]);
                     })
-                    .then(() => {
+                    .then(function () {
                         //initialize all the plugins
-                        return pluginRun('init').then(() => {
+                        return pluginRun('init').then(function () {
                             /**
                              * @event itemCreator#init the initialization is done
                              * @param {Object} item - the loaded item
                              */
-                            this.trigger('init', this.item);
+                            self.trigger('init', self.item);
                         });
                     })
-                    .then(() => {
+                    .then(function () {
                         // forward context error
-                        qtiCreatorContext.on('error', err => this.trigger('error', err));
+                        qtiCreatorContext.on('error', function (err) {
+                            self.trigger('error', err);
+                        });
                         // handle before save processes
-                        this.beforeSaveProcess = Promise.resolve();
+                        self.beforeSaveProcess = Promise.resolve();
                         qtiCreatorContext.on('registerBeforeSaveProcess', beforeSaveProcess => {
-                            this.beforeSaveProcess = Promise.all([this.beforeSaveProcess, beforeSaveProcess]);
+                            self.beforeSaveProcess = Promise.all([self.beforeSaveProcess, beforeSaveProcess]);
                         });
                         return qtiCreatorContext.init();
                     })
-                    .catch(err => this.trigger('error', err));
+                    .catch(function (err) {
+                        self.trigger('error', err);
+                    });
 
                 return this;
             },
@@ -317,7 +324,8 @@ define([
              * @fires itemCreator#ready - once the creator's components' are ready (not yet reliable)
              * @fires itemCreator#error - if something went wrong
              */
-            render() {
+            render: function render() {
+                const self = this;
                 const item = this.getItem();
 
                 if (!item || !_.isFunction(item.getUsedClasses)) {
@@ -328,30 +336,23 @@ define([
                 commonRenderer.setContext(areaBroker.getItemPanelArea());
                 commonRenderer.get(true, config).setOption('baseUrl', config.properties.baseUrl);
 
-                // the interactions panel may not be rendered, and therefore not available
-                const $interactionPanel = areaBroker.getInteractionPanelArea();
-                if ($interactionPanel.length > 0) {
-                    interactionPanel($interactionPanel);
-                }
+                interactionPanel(areaBroker.getInteractionPanelArea());
 
                 //the renderers' widgets do not handle async yet, so we rely on this event
                 //TODO ready should be triggered once every renderer's widget is done (ie. promisify everything)
-                $(document).on('ready.qti-widget', (e, elt) => {
+                $(document).on('ready.qti-widget', function (e, elt) {
                     if (elt.element.qtiClass === 'assessmentItem') {
-                        this.trigger('ready');
+                        self.trigger('ready');
                     }
                 });
 
                 // pass an context reference to the renderer
                 config.qtiCreatorContext = qtiCreatorContext;
 
-                // listen to save requests from the DOM components (like the style editor)
-                areaBroker.getContentCreatorPanelArea().on('save.qti-creator', () => this.trigger('save'));
-
                 creatorRenderer
                     .get(true, config, areaBroker)
                     .setOptions(config.properties)
-                    .load(function onLoad() {
+                    .load(function () {
                         let widget;
 
                         //set renderer
@@ -362,12 +363,12 @@ define([
 
                         //"post-render it" to initialize the widget
                         Promise.all(item.postRender(_.clone(config.properties)))
-                            .then(() => {
+                            .then(function () {
                                 //set reference to item widget object
                                 areaBroker.getContainer().data('widget', item);
 
                                 widget = item.data('widget');
-                                _.forEach(item.getComposingElements(), element => {
+                                _.each(item.getComposingElements(), function (element) {
                                     if (element.qtiClass === 'include') {
                                         xincludeRenderer.render(element.data('widget'), config.properties.baseUrl);
                                     }
@@ -378,9 +379,13 @@ define([
                                 //init event listeners:
                                 eventHelper.initElementToWidgetListeners();
 
-                                return pluginRun('render').then(() => itemCreator.trigger('render'));
+                                return pluginRun('render').then(function () {
+                                    self.trigger('render');
+                                });
                             })
-                            .catch(err => itemCreator.trigger('error', err));
+                            .catch(function (err) {
+                                self.trigger('error', err);
+                            });
                     }, item.getUsedClasses());
 
                 return this;
@@ -391,13 +396,12 @@ define([
              *
              * @returns {itemCreator} chains
              */
-            destroy() {
+            destroy: function destroy() {
                 $(document).off('.qti-widget');
 
                 pluginRun('destroy')
                     .then(() => qtiCreatorContext.destroy())
                     .then(() => {
-                        areaBroker.getContentCreatorPanelArea().off('.qti-creator');
                         this.trigger('destroy');
                     })
                     .catch(err => {
@@ -412,7 +416,7 @@ define([
              * Give an access to the loaded item
              * @returns {Object} the item
              */
-            getItem() {
+            getItem: function getItem() {
                 return this.item;
             },
 
@@ -420,7 +424,7 @@ define([
              * Return if item is empty or not
              * @returns {Boolean} true/false
              */
-            isEmpty() {
+            isEmpty: function isEmpty() {
                 const item = this.item.bdy.bdy;
                 return item === '' || item === '\n    ';
             },
@@ -429,7 +433,7 @@ define([
              * Give an access to the config
              * @returns {Object} the config
              */
-            getConfig() {
+            getConfig: function getConfig() {
                 return config;
             }
         });

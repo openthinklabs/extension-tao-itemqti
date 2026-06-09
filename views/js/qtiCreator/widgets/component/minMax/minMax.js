@@ -47,10 +47,7 @@ define([
             //default help message
             helpMessage: __(
                 'The minimum number of choices that the candidate is required to select to form a valid response.'
-            ),
-
-            // determines if field can be null
-            canBeNull: false,
+            )
         },
         max: {
             //name of the max field
@@ -65,10 +62,7 @@ define([
             //default help message
             helpMessage: __(
                 'The maximum number of choices that the candidate is required to select to form a valid response.'
-            ),
-
-            // determines if field can be null
-            canBeNull: false,
+            )
         },
 
         //Minimum threshold for both
@@ -81,7 +75,7 @@ define([
         syncValues: true,
 
         //does the input can have decimal value
-        allowDecimal: true
+        allowDecimal: false
     };
 
     /**
@@ -122,7 +116,7 @@ define([
          * @throws {TypeError} if the field is unknown
          */
         const isFieldSupported = function isFieldSupported(field) {
-            if (!_.includes(fields, field)) {
+            if (!_.contains(fields, field)) {
                 throw new TypeError(`Unknown field "${field}". Please set "min" or "max"`);
             }
             return true;
@@ -152,12 +146,11 @@ define([
                     const config = this.getConfig();
 
                     if (isFieldSupported(field)) {
-                        if (!this.is('rendered')) {
-                            return config[field].value;
+                        if (this.is('rendered')) {
+                            return _.parseInt(controls[field].input.val());
                         }
 
-                        const inputValue = controls[field].input.val();
-                        return inputValue === '' ? null : this.parseNumber(inputValue);
+                        return config[field].value;
                     }
                 },
 
@@ -178,26 +171,6 @@ define([
                 },
 
                 /**
-                 * Get the lower threshold for a field
-                 * @param {String} field - min or max
-                 * @returns {Number} the lower threshold value
-                 */
-                getLowerThreshold: function(field) {
-                    const config = this.getConfig();
-                    return config[field].lowerThreshold ? config[field].lowerThreshold : config.lowerThreshold;
-                },
-
-                /**
-                 * Get the upper threshold for a field
-                 * @param {String} field - min or max
-                 * @returns {Number} the upper threshold value
-                 */
-                getUpperThreshold: function(field) {
-                    const config = this.getConfig();
-                    return config[field].upperThreshold ? config[field].upperThreshold : config.upperThreshold;
-                },
-
-                /**
                  * Set the value of a given field
                  * @param {String} field - min or max
                  * @param {Number} value - the value to set
@@ -205,26 +178,23 @@ define([
                  * @throws {TypeError} if the field is unknown
                  */
                 setValue: function setValue(field, value) {
-                    if (!isFieldSupported(field)) {
-                        return this;
-                    }
-
                     const config = this.getConfig();
-                    const intValue = this.parseNumber(value);
-                    const lowerThreshold = this.getLowerThreshold(field);
-                    const upperThreshold = this.getUpperThreshold(field);
+                    const intValue = _.parseInt(value);
+                    const lowerThreshold = config[field].lowerThreshold
+                        ? config[field].lowerThreshold
+                        : config.lowerThreshold;
+                    const upperThreshold = config[field].upperThreshold
+                        ? config[field].upperThreshold
+                        : config.upperThreshold;
 
-                    if (config[field].canBeNull && value === null) {
-                        if (this.is('rendered')) {
-                            controls[field].input.val('').trigger('change');
-                        }
-                        config[field].value = null;
-                        return this;
-                    }
-
-                    if (_.isNumber(intValue) && (intValue >= lowerThreshold) && intValue <= upperThreshold) {
+                    if (
+                        isFieldSupported(field) &&
+                        _.isNumber(intValue) &&
+                        intValue >= lowerThreshold &&
+                        intValue <= upperThreshold
+                    ) {
                         if (this.is('rendered') && controls[field].input.val() !== `${intValue}`) {
-                            controls[field].input.val(intValue).trigger('change');
+                            return controls[field].input.val(intValue).trigger('change');
                         }
 
                         config[field].value = intValue;
@@ -263,8 +233,8 @@ define([
                     const config = this.getConfig();
                     if (_.isNumber(lower) && _.isNumber(upper) && upper >= lower) {
                         if (!field) {
-                            config.lowerThreshold = this.parseNumber(lower);
-                            config.upperThreshold = this.parseNumber(upper);
+                            config.lowerThreshold = _.parseInt(lower);
+                            config.upperThreshold = _.parseInt(upper);
 
                             if (this.is('rendered')) {
                                 const fieldOptions = {
@@ -282,8 +252,8 @@ define([
                                 }
                             }
                         } else if (field === 'min' || field === 'max') {
-                            config[field].lowerThreshold = this.parseNumber(lower);
-                            config[field].upperThreshold = this.parseNumber(upper);
+                            config[field].lowerThreshold = _.parseInt(lower);
+                            config[field].upperThreshold = _.parseInt(upper);
 
                             if (this.is('rendered')) {
                                 const fieldOptions = {
@@ -316,7 +286,7 @@ define([
                             return true;
                         }
 
-                        return config[field].canBeNull ? config[field].value !== null : config[field].value > 0;
+                        return this.getValue(field) > 0;
                     }
                     return false;
                 },
@@ -331,18 +301,9 @@ define([
                  * @fires  minMax#enablemax
                  */
                 enableField: function enableField(field, initialValue) {
-                    if (isFieldSupported(field) && this.is('rendered')) {
-                        const config = this.getConfig();
-
-                        let valueToSet;
-                        if (config[field].canBeNull) {
-                            valueToSet = initialValue >= 0 ? initialValue : 0;
-                        } else {
-                            valueToSet = initialValue > 1 ? initialValue : 1;
-                        }
-
+                    if (isFieldSupported(field) && this.is('rendered') && !this.isFieldEnabled(field)) {
                         controls[field].input
-                            .val(valueToSet)
+                            .val(initialValue > 1 ? initialValue : 1)
                             .incrementer('enable')
                             .trigger('change');
 
@@ -373,13 +334,10 @@ define([
                     if (
                         isFieldSupported(field) &&
                         this.is('rendered') &&
-                        config[field].toggler === true
+                        config[field].toggler === true &&
+                        this.isFieldEnabled(field)
                     ) {
-                        config[field].value = config[field].canBeNull ? null : 0;
-                        controls[field].input
-                            .val(config[field].canBeNull ? '' : 0)
-                            .incrementer('disable')
-                            .trigger('change');
+                        controls[field].input.val(0).incrementer('disable').trigger('change');
 
                         /**
                          * One of the field is enabled
@@ -402,36 +360,26 @@ define([
 
                     fromField = fromField || fields.min;
 
-                    if (isNaN(this.getMinValue())) {
-                        this.setMinValue(this.getLowerThreshold(fromField));
-                    }
-                    if (isNaN(this.getMaxValue())) {
-                        this.setMaxValue(this.getLowerThreshold(fromField));
-                    }
+                    if (isFieldSupported(fromField) && this.is('rendered') && config.syncValues) {
+                        const minValue = this.getMinValue();
+                        const maxValue = this.getMaxValue();
 
-                    if (!isFieldSupported(fromField) || !this.is('rendered') || !config.syncValues) {
-                        return this;
-                    }
-
-                    const minValue = this.getMinValue();
-                    const maxValue = this.getMaxValue();
-
-                    if (minValue > 0 && maxValue >= 0) {
-                        if (fromField === fields.max && minValue > maxValue) {
-                            _.isNumber(maxValue) && this.isFieldEnabled('min') && this.setMinValue(maxValue);
+                        if (minValue > 0 && maxValue > 0) {
+                            if (fromField === fields.max && minValue > maxValue) {
+                                this.setMinValue(maxValue);
+                            }
+                            if (fromField === fields.min && minValue > maxValue) {
+                                this.setMaxValue(minValue);
+                            }
+                        } else if (
+                            minValue === 0 &&
+                            maxValue > 0 &&
+                            (document.querySelector('.edit-active > .qti-orderInteraction') ||
+                                document.querySelector('.edit-active > .qti-graphicOrderInteraction'))
+                        ) {
+                            this.enableField(fields.min, 1);
+                            controls.min.toggler.prop('checked', true);
                         }
-                        if (fromField === fields.min && minValue > maxValue) {
-                            _.isNumber(maxValue) && this.isFieldEnabled('min') && this.setMaxValue(minValue);
-                        }
-                    }
-                    if (
-                        minValue === 0 &&
-                        maxValue > 0 &&
-                        (document.querySelector('.edit-active > .qti-orderInteraction') ||
-                            document.querySelector('.edit-active > .qti-graphicOrderInteraction'))
-                    ) {
-                        this.enableField(fields.min, this.getLowerThreshold(fields.min) || 1);
-                        controls.min.toggler.prop('checked', true);
                     }
                     return this;
                 },
@@ -446,21 +394,13 @@ define([
                 convertToNumber: function convertToNumber(fromField) {
                     if (isFieldSupported(fromField) && this.is('rendered')) {
                         if (fromField === fields.max) {
-                            this.setMaxValue(this.parseNumber(this.getMaxValue()));
+                            this.setMaxValue(parseInt(this.getMaxValue()));
                         } else {
-                            this.setMinValue(this.parseNumber(this.getMinValue()));
+                            this.setMinValue(parseInt(this.getMinValue()));
                         }
                     }
 
                     return this;
-                },
-
-                parseNumber: function parseNumber(value) {
-                    const config = this.getConfig();
-                    if (config.allowDecimal) {
-                        return parseFloat(value);
-                    }
-                    return parseInt(value);
                 },
 
                 /**
@@ -518,14 +458,10 @@ define([
                         if (fieldConfig.toggler) {
                             fieldControl.toggler = $(`[name=${fieldConfig.fieldName}-toggler]`, $element);
 
-                            const shouldEnableField = fieldConfig.canBeNull
-                                ? fieldConfig.value !== null
-                                : fieldConfig.value > 0;
-
-                            if (shouldEnableField) {
+                            //does the toggler starts checked ?
+                            if (fieldConfig.value > 0) {
                                 fieldControl.toggler.prop('checked', true);
                             } else {
-                                fieldControl.toggler.prop('checked', false);
                                 self.disableField(field);
                             }
 
@@ -535,7 +471,7 @@ define([
                                     self.enableField(
                                         field,
                                         Math.max(
-                                            fieldConfig.canBeNull ? 0 : (self.getLowerThreshold(field) || 1),
+                                            fieldConfig.lowerThreshold || config.lowerThreshold || 1,
                                             self.getMinValue()
                                         )
                                     );
@@ -549,7 +485,11 @@ define([
 
                         fieldControl.input.on('change', function () {
                             self.syncValues(field);
-                            self.convertToNumber(field);
+
+                            if (!config.allowDecimal) {
+                                self.convertToNumber(field);
+                            }
+
                             self.trigger('change');
                         });
                     }

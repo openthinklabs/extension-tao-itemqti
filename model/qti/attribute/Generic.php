@@ -35,6 +35,7 @@ use oat\taoQtiItem\model\qti\attribute\Attribute;
  */
 class Generic extends Attribute
 {
+    
     protected static $name = 'generic';
     protected static $type = 'oat\\taoQtiItem\\model\\qti\\datatype\\Generic';
     protected static $defaultValue = null;

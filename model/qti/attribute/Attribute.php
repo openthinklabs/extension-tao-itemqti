@@ -34,10 +34,9 @@ use oat\taoQtiItem\model\qti\datatype\DatatypeException;
  */
 abstract class Attribute
 {
-    // phpcs:disable Generic.NamingConventions.UpperCaseConstantName
-    public const QTI_v2p0 = '2.0';
-    public const QTI_v2p1 = '2.1';
-    // phpcs:enable Generic.NamingConventions.UpperCaseConstantName
+
+    const QTI_v2p0 = '2.0';
+    const QTI_v2p1 = '2.1';
 
     /**
      * The name of the attribute defined in the QTI standard
@@ -66,14 +65,14 @@ abstract class Attribute
      * @var mixed
      */
     protected static $defaultValue = null;
-
+    
     /**
      * Define the default value of the attribute
      *
      * @var mixed
      */
     protected static $taoDefaultValue = null;
-
+    
     /**
      * The object holding the value of the attribute
      *
@@ -94,16 +93,10 @@ abstract class Attribute
         $this->version = $version;
 
         if (empty(static::$name) || empty(static::$type)) {
-            throw new AttributeException(
-                'Fail to extend QTI_attribute_Attribute class properly: wrong QTI Attribute property definition: "'
-                    . __CLASS__ . '"'
-            );
+            throw new AttributeException('Fail to extend QTI_attribute_Attribute class properly: wrong QTI Attribute property definition: "' . __CLASS__ . '"');
         }
 
-        if (
-            class_exists(static::$type)
-            && is_subclass_of(static::$type, 'oat\\taoQtiItem\\model\\qti\\datatype\\Datatype')
-        ) {
+        if (class_exists(static::$type) && is_subclass_of(static::$type, 'oat\\taoQtiItem\\model\\qti\\datatype\\Datatype')) {
             if (!is_null($value)) {
                 $this->value = new static::$type($value);
             } elseif (!is_null(static::$defaultValue)) {
@@ -114,10 +107,7 @@ abstract class Attribute
                 $this->setNull();
             }
         } else {
-            throw new AttributeException(
-                'Fail to extend QTI_attribute_Attribute class properly: the attribute type class does not exist: "'
-                    . static::$type . '"'
-            );
+            throw new AttributeException('Fail to extend QTI_attribute_Attribute class properly: the attribute type class does not exist: "' . static::$type . '"');
         }
     }
 
@@ -135,7 +125,7 @@ abstract class Attribute
     {
         return (bool) static::$required;
     }
-
+    
     /**
      * Check if a value has been set to this attribute
      *
@@ -145,7 +135,7 @@ abstract class Attribute
     {
         return is_null($this->value);
     }
-
+    
     /**
      * Clear, empty, nullify the value of the attribute
      *
@@ -185,7 +175,7 @@ abstract class Attribute
     {
         return static::$name;
     }
-
+    
     /**
      * Get the Qti BaseType class
      *
@@ -247,9 +237,7 @@ abstract class Attribute
                 if ($type == 'object') {
                     $type .= '(' . get_class($value) . ')';
                 }
-                throw new AttributeException(
-                    'Cannot assign the value to attribute: ' . static::$name . ' -> ' . $type . ' ' . $value
-                );
+                throw new AttributeException('Cannot assign the value to attribute: ' . static::$name . ' -> ' . $type . ' ' . $value);
             }
         }
 

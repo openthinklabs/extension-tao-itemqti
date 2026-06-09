@@ -170,7 +170,7 @@ define(['lodash', 'core/promise', 'core/eventifier'], function (_, Promise, even
                             }
                         });
                         _requirejs(providerLoadingStack, function(){
-                            _.forEach([].slice.call(arguments), function(provider){
+                            _.each([].slice.call(arguments), function(provider){
                                 if(isPortableElementProvider(provider)){
                                     __providers[providerLoadingStack.shift()] = provider;
                                 }
@@ -383,7 +383,7 @@ define(['lodash', 'core/promise', 'core/eventifier'], function (_, Promise, even
                             //@todo support caching?
                             _requirejs(requiredCreatorHooks, function (){
                                 var creators = {};
-                                _.forEach(arguments, function (creatorHook){
+                                _.each(arguments, function (creatorHook){
                                     var id = creatorHook.getTypeIdentifier();
                                     var portableElementModel = self.get(id);
                                     var i = _.findIndex(self._registry[id], {version : portableElementModel.version});

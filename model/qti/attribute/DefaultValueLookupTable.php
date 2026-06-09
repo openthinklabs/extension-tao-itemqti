@@ -35,6 +35,7 @@ use oat\taoQtiItem\model\qti\attribute\Attribute;
  */
 class DefaultValueLookupTable extends Attribute
 {
+    
     protected static $name = 'defaultValue';
     protected static $type = 'oat\\taoQtiItem\\model\\qti\\datatype\\ValueType';
     protected static $defaultValue = null;

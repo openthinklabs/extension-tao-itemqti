@@ -35,6 +35,7 @@ use oat\taoQtiItem\model\qti\attribute\Attribute;
  */
 class Coords extends Attribute
 {
+    
     protected static $name = 'coords';
     protected static $type = 'oat\\taoQtiItem\\model\\qti\\datatype\\Coords';
     protected static $defaultValue = null;

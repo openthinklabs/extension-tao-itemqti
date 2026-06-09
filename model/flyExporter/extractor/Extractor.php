@@ -32,7 +32,7 @@ use oat\oatbox\PhpSerializable;
  */
 interface Extractor extends PhpSerializable
 {
-    public const DEFAULT_PROPERTY_DELIMITER = '|';
+    const DEFAULT_PROPERTY_DELIMITER = '|';
 
     /**
      * Item to export, could load relative info like xml

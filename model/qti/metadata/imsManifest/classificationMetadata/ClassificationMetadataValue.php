@@ -46,9 +46,7 @@ class ClassificationMetadataValue implements ClassificationValue
     {
         foreach ($entries as $entry) {
             if (! $entry instanceof ClassificationEntryMetadataValue) {
-                throw new MetadataWriterException(
-                    __('Classification entries have to be an instance of ClassificationEntryMetadataValue')
-                );
+                throw new MetadataWriterException(__('Classification entries have to be an instance of ClassificationEntryMetadataValue'));
             }
         }
         $this->source  = $source;

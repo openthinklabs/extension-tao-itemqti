@@ -38,6 +38,7 @@ use oat\taoQtiItem\model\qti\container\ContainerStatic;
  */
 abstract class ContainerChoice extends Choice implements FlowContainer
 {
+
     protected $body = null;
 
     public function __construct($attributes = [], Item $relatedItem = null, $serial = '')

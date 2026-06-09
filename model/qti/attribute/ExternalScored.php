@@ -1,5 +1,4 @@
 <?php
-
 /*
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -35,8 +34,10 @@ use oat\taoQtiItem\model\qti\attribute\Attribute;
  */
 class ExternalScored extends Attribute
 {
-    protected static $name = 'externalScored';
-    protected static $type = 'oat\\taoQtiItem\\model\\qti\\datatype\\ExternalScored';
-    protected static $defaultValue = null;
-    protected static $required = false;
+
+	static protected $name = 'externalScored';
+	static protected $type = 'oat\\taoQtiItem\\model\\qti\\datatype\\ExternalScored';
+	static protected $defaultValue = null;
+	static protected $required = false;
+
 }

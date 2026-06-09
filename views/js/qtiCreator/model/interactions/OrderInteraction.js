@@ -18,7 +18,6 @@ define([
             };
         },
         afterCreate : function(){
-            this.attr('data-order', 'single');
             this.createChoice();
             this.createChoice();
             this.createChoice();

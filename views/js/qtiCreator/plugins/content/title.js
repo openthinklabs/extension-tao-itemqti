@@ -1,3 +1,4 @@
+
 /**
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -13,7 +14,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2016-2024 (original work) Open Assessment Technologies SA ;
+ * Copyright (c) 2016 (original work) Open Assessment Technologies SA ;
  */
 
 /**
@@ -21,7 +22,12 @@
  *
  * @author Bertrand Chevrier <bertrand@taotesting.com>
  */
-define(['lodash', 'i18n', 'core/plugin'], function (_, __, pluginFactory) {
+define([
+    'jquery',
+    'lodash',
+    'i18n',
+    'core/plugin'
+], function($, _, __, pluginFactory){
     'use strict';
 
     /**
@@ -29,23 +35,20 @@ define(['lodash', 'i18n', 'core/plugin'], function (_, __, pluginFactory) {
      * @returns {Function} the plugin
      */
     return pluginFactory({
-        name: 'title',
+
+        name : 'title',
 
         /**
          * Hook to the host's init
          */
-        init() {
-            const config = this.getHost().getConfig();
-            const item = this.getHost().getItem();
+        init : function init(){
+            var config = this.getHost().getConfig();
+            var item   = this.getHost().getItem();
 
-            this.format = '%title%';
-            if (config.properties && config.properties.translation) {
-                this.format = __('%title% - Translation (%lang%)');
-            }
-
-            if (item && !_.isEmpty(item.attr('title'))) {
+            if(item && !_.isEmpty(item.attr('title'))){
                 this.title = item.attr('title');
-            } else if (config && config.properties && config.properties.label) {
+            }
+            else if(config && config.properties && config.properties.label){
                 this.title = config.properties.label;
             }
         },
@@ -53,17 +56,13 @@ define(['lodash', 'i18n', 'core/plugin'], function (_, __, pluginFactory) {
         /**
          * Hook to the host's render
          */
-        render() {
-            const config = this.getHost().getConfig();
-            if (this.title) {
+        render : function render(){
+
+            if(this.title){
                 //attach the element to the title area
                 this.getAreaBroker()
                     .getTitleArea()
-                    .text(
-                        this.format
-                            .replace('%title%', this.title)
-                            .replace('%lang%', config.properties.translationLanguageCode)
-                    );
+                    .text(this.title);
             }
         }
     });

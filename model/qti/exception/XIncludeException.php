@@ -22,8 +22,8 @@
 
 namespace oat\taoQtiItem\model\qti\exception;
 
-use common_Exception;
-use common_exception_UserReadableException;
+use \common_Exception;
+use \common_exception_UserReadableException;
 use oat\taoQtiItem\model\qti\XInclude;
 
 /**
@@ -36,12 +36,14 @@ use oat\taoQtiItem\model\qti\XInclude;
  */
 class XIncludeException extends common_Exception implements common_exception_UserReadableException
 {
+
+    
     /**
      *
      * @var \oat\taoQtiItem\model\qti\XInclude
      */
     protected $xinclude = null;
-
+    
     /**
      *
      * @param string $message
@@ -52,7 +54,7 @@ class XIncludeException extends common_Exception implements common_exception_Use
         parent::__construct($message);
         $this->xinclude = $xinclude;
     }
-
+    
     /**
      * Returns a human-readable message describing the error that occured.
      *
@@ -62,7 +64,7 @@ class XIncludeException extends common_Exception implements common_exception_Use
     {
         return __('An error occured while loading a shared stimulus.');
     }
-
+    
     /**
      * Get the faulty XInclude instance
      *

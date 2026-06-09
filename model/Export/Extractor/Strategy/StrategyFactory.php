@@ -11,6 +11,7 @@ namespace oat\taoQtiItem\model\Export\Extractor\Strategy;
 
 class StrategyFactory
 {
+
     /**
      * @param array $config
      * @param string $column

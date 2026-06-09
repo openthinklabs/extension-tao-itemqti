@@ -22,8 +22,8 @@
 namespace oat\taoQtiItem\model;
 
 use oat\oatbox\AbstractRegistry;
-use common_exception_Error;
-use common_ext_ExtensionsManager;
+use \common_exception_Error;
+use \common_ext_ExtensionsManager;
 
 /**
  *
@@ -31,6 +31,7 @@ use common_ext_ExtensionsManager;
  */
 abstract class AbstractInteractionRegistry extends AbstractRegistry
 {
+
     /**
      *
      * @author Lionel Lecaque, lionel@taotesting.com
@@ -51,9 +52,7 @@ abstract class AbstractInteractionRegistry extends AbstractRegistry
             throw new common_exception_Error('Custom interaction class ' . $phpClass . ' not found');
         }
         if (! is_subclass_of($phpClass, $this->getInteractionClass())) {
-            throw new common_exception_Error(
-                'Class ' . $phpClass . ' not a subclass of ' . $this->getInteractionClass()
-            );
+            throw new common_exception_Error('Class ' . $phpClass . ' not a subclass of ' . $this->getInteractionClass());
         }
         parent::set($qtiClass, $phpClass);
     }

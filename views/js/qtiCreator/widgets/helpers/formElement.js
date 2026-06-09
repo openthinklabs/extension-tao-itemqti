@@ -108,7 +108,7 @@ define([
 
             if (!valid) {
                 //invalid input!
-                rule = _.filter(results, {
+                rule = _.where(results, {
                     type: 'failure'
                 })[0];
                 if (rule && rule.data.message && !$('#mediaManager').children('.opened').length) {
@@ -340,7 +340,6 @@ define([
 
                 options.callback(element, value, name);
             };
-
             return callbacks;
         }
     };

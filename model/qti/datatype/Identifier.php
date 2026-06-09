@@ -36,6 +36,7 @@ use oat\taoQtiItem\model\qti\datatype\Datatype;
  */
 class Identifier extends Datatype
 {
+    
     /**
      * The identifier datatype must hold directly the reference to the referenced object
      * Indeed, QTI allow identical identifiers for different qti elements
@@ -48,7 +49,7 @@ class Identifier extends Datatype
     {
         return !is_null(self::fix($value));
     }
-
+    
     /**
      * Check if the identifier string is correct per the QTI standard
      *
@@ -59,22 +60,22 @@ class Identifier extends Datatype
     {
         return preg_match('/^[_a-z]{1}[a-z0-9-._]{0,31}$/ims', $identifier);
     }
-
+    
     public static function fix($value)
     {
-
+        
         $returnValue = null;
-
+        
         foreach (static::getAllowedClasses() as $class) {
             if ($value instanceof $class) {
                 $returnValue = $value;
                 break;
             }
         }
-
+        
         return $returnValue;
     }
-
+    
     /**
      * Define the array of authorized QTI element classes
      *
@@ -86,28 +87,28 @@ class Identifier extends Datatype
             'oat\\taoQtiItem\\model\\qti\\IdentifiedElement'
         ];
     }
-
+    
     public function getValue()
     {
-
+        
         $returnValue = null;
-
+        
         if (!is_null($this->value)) {
             $returnValue = $this->value->getIdentifier();
         }
-
+        
         return $returnValue;
     }
-
+    
     public function getReferencedObject()
     {
-
+        
         $returnValue = null;
-
+        
         if (!is_null($this->value)) {
             $returnValue = $this->value;
         }
-
+        
         return $returnValue;
     }
 }

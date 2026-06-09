@@ -35,6 +35,7 @@ use oat\taoQtiItem\model\qti\attribute\Attribute;
  */
 class View extends Attribute
 {
+    
     protected static $name = 'view';
     protected static $type = 'oat\\taoQtiItem\\model\\qti\\datatype\\View';
     protected static $defaultValue = null;

@@ -29,24 +29,23 @@ use oat\taoQtiItem\model\qti\metadata\MetadataGuardian;
 use oat\taoQtiItem\model\qti\metadata\ContextualMetadataGuardian;
 use oat\taoQtiItem\model\qti\metadata\MetadataService;
 use oat\taoQtiItem\model\qti\metadata\MetadataValidator;
-use oat\taoQtiItem\model\qti\metadata\simple\SimpleMetadataValue;
 
 class MetadataImporter extends AbstractMetadataService
 {
     /**
      * Config key to store guardians classes
      */
-    public const GUARDIAN_KEY     = 'guardians';
+    const GUARDIAN_KEY     = 'guardians';
 
     /**
      * Config key to store classLookup classes
      */
-    public const CLASS_LOOKUP_KEY = 'classLookups';
+    const CLASS_LOOKUP_KEY = 'classLookups';
 
     /**
      * Config key to store validator classes
      */
-    public const VALIDATOR_KEY = 'validators';
+    const VALIDATOR_KEY = 'validators';
 
     /**
      * Extract metadata value from a DomManifest
@@ -56,9 +55,7 @@ class MetadataImporter extends AbstractMetadataService
     public function extract($domManifest)
     {
         if (! $domManifest instanceof \DOMDocument) {
-            throw new MetadataImportException(
-                __('Metadata import requires an instance of DomManifest to extract metadata')
-            );
+            throw new MetadataImportException(__('Metadata import requires an instance of DomManifest to extract metadata'));
         }
         return parent::extract($domManifest);
     }
@@ -71,9 +68,7 @@ class MetadataImporter extends AbstractMetadataService
     public function inject($identifier, $resource)
     {
         if (! $resource instanceof \core_kernel_classes_Resource) {
-            throw new MetadataImportException(
-                __('Metadata import requires an instance of core_kernel_classes_Resource to inject metadata')
-            );
+            throw new MetadataImportException(__('Metadata import requires an instance of core_kernel_classes_Resource to inject metadata'));
         }
         parent::inject($identifier, $resource);
     }
@@ -94,7 +89,7 @@ class MetadataImporter extends AbstractMetadataService
             if ($guardian instanceof ContextualMetadataGuardian && $guardian->getContext() !== $context) {
                 continue;
             }
-
+            
             if ($this->hasMetadataValue($identifier)) {
                 \common_Logger::i(__('Guard for resource "%s"...', $identifier));
                 if (($guard = $guardian->guard($this->getMetadataValue($identifier))) !== false) {
@@ -125,11 +120,7 @@ class MetadataImporter extends AbstractMetadataService
             if ($this->hasMetadataValue($identifier)) {
                 \common_Logger::i(__('Target Class Lookup for resource "%s"...', $identifier));
                 if (($targetClass = $classLookup->lookup($this->getMetadataValue($identifier))) !== false) {
-                    \common_Logger::i(
-                        // phpcs:disable Generic.Files.LineLength
-                        __('Class Lookup Successful. Resource "%s" will be stored in RDFS Class "%s".', $identifier, $targetClass->getUri())
-                        // phpcs:enable Generic.Files.LineLength
-                    );
+                    \common_Logger::i(__('Class Lookup Successful. Resource "%s" will be stored in RDFS Class "%s".', $identifier, $targetClass->getUri()));
 
                     if ($classLookup instanceof MetadataClassLookupClassCreator) {
                         $createdClasses = $classLookup->createdClasses();
@@ -230,24 +221,6 @@ class MetadataImporter extends AbstractMetadataService
                 break;
         }
         return parent::unregister($key, $name);
-    }
-
-    public function metadataValueUris($metadata): array
-    {
-        $metadataUriList = [];
-        foreach ($metadata as $resourceIdentifier => $metadataValueCollection) {
-            foreach ($metadataValueCollection as $metadataValue) {
-                if (!$metadataValue instanceof SimpleMetadataValue) {
-                    continue;
-                }
-                $uri = $metadataValue->getPath()[1];
-                if (!empty($uri)) {
-                    $metadataUriList[] = $uri;
-                }
-            }
-        }
-
-        return array_unique($metadataUriList);
     }
 
     /**

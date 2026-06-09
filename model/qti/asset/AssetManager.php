@@ -198,8 +198,7 @@ class AssetManager
         } catch (\common_Exception $e) {
             throw new AssetManagerException(
                 'Error occurs during dependency assets handling: assetFile: ' . $relativePath,
-                0,
-                $e
+                0, $e
             );
         }
     }

@@ -34,17 +34,17 @@ use oat\taoQtiItem\model\qti\metadata\importer\MetadataImporter;
  */
 class MetadataService extends ConfigurableService
 {
-    public const SERVICE_ID = 'taoQtiItem/metadataService';
+    const SERVICE_ID = 'taoQtiItem/metadataService';
 
     /**
      * Config key to store importer service for metadata
      */
-    public const IMPORTER_KEY  = 'import';
+    const IMPORTER_KEY  = 'import';
 
     /**
      * Config key to store exporter service for metadata
      */
-    public const EXPORTER_KEY  = 'export';
+    const EXPORTER_KEY  = 'export';
 
     /**
      * Return metadata importer to handle metadata

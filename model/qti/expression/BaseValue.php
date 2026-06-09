@@ -19,12 +19,11 @@
  *
  *
  */
-
 namespace oat\taoQtiItem\model\qti\expression;
 
 use oat\taoQtiItem\model\qti\expression\BaseValue;
 use oat\taoQtiItem\model\qti\expression\CommonExpression;
-use common_Exception;
+use \common_Exception;
 
 /**
  * Short description of class oat\taoQtiItem\model\qti\expression\BaseValue
@@ -54,15 +53,15 @@ class BaseValue extends CommonExpression
     {
         $returnValue = (string) '';
 
-
-        // JSON ENCODE the value to get quote when quote are required function of the variable base type
+        
+         // JSON ENCODE the value to get quote when quote are required function of the variable base type
         // not so easy ;)
         //$returnValue = json_encode($this->value);
         // @todo make usable for complex variable such as pair, directed pair ..
         // @todo centralize the management of the options (attributes)
         $options = [];
         $value = null;
-
+        
         switch ($this->attributes['baseType']) {
             case "boolean":
                 $options['type'] = "boolean";
@@ -87,21 +86,17 @@ class BaseValue extends CommonExpression
                 break;
             case "directedPair":
                 $options['type'] = "tuple";
-                // Méchant casting, won't work with a dictionnary, but with a tuple it is okay
-                $value = '"' . implode('","', (array)$this->value) . '"';
+                $value = '"' . implode('","', (array)$this->value) . '"'; // Méchant casting, won't work with a dictionnary, but with a tuple it is okay
                 break;
             default:
-                throw new common_Exception(
-                    "taoQTI_models_classes_QTI_response_BaseValue::getRule an error occured : the type "
-                        . $this->attributes['baseType'] . " is unknown"
-                );
+                throw new common_Exception("taoQTI_models_classes_QTI_response_BaseValue::getRule an error occured : the type " . $this->attributes['baseType'] . " is unknown");
         }
 
         $returnValue = 'createVariable('
             . (count($options) ? '"' . addslashes(json_encode($options)) . '"' : 'null') .
             ', ' . $value .
         ')';
-
+        
 
         return (string) $returnValue;
     }

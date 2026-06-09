@@ -45,8 +45,7 @@ define([
                     max: Math.max(1200, targetWidth)
                 },
                 start: targetWidth
-            },
-            customCSSItemWidth;
+            };
 
         var reset = function() {
             itemResizer.find('[value="no-slider"]').trigger('click');
@@ -77,14 +76,13 @@ define([
         itemWidthPrompt.on('click', function() {
             // user intends to resize the item
             if(this.value === 'slider') {
-                let width = customCSSItemWidth || $target.width();
-                input.val(width);
-                slider.val(width).trigger('slide');
+                input.val($target.width());
+                slider.val($target.width()).trigger('slide');
                 sliderBox.slideDown();
 
                 item.data('responsive', false);
 
-                resizeItem(width);
+                resizeItem($target.width());
             }
             // user wants to use default
             else {
@@ -103,13 +101,12 @@ define([
         slider.on('slide', function() {
             var value = Math.round(slider.val());
             input.val(value);
-            customCSSItemWidth = value;
             resizeItem(value);
         });
 
         input.on('keydown', function(e) {
             var c = e.keyCode;
-            return (_.includes([8, 37, 39, 46], c)
+            return (_.contains([8, 37, 39, 46], c)
                 || (c >= 48 && c <= 57)
                 || (c >= 96 && c <= 105));
         });
@@ -123,7 +120,6 @@ define([
             var width;
             // make a proper width change
             if(style[target] && style[target].width) {
-                customCSSItemWidth = style[target].width;
                 width = parseInt(style[target].width, 10);
                 input.val(width);
                 slider.val(width);

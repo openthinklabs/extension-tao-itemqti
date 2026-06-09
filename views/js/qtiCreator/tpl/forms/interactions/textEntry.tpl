@@ -1,4 +1,3 @@
-{{#if baseAvailable}}
 <div class="panel">
     <label for="base" class="spinner">{{__ "Base"}}</label>
     <span class="icon-help tooltipstered" data-tooltip="~ .tooltip-content" data-tooltip-theme="info"></span>
@@ -7,7 +6,6 @@
         {{__ "If the string interaction is bound to a numeric response variable then the base attribute must be used to set the number base in which to interpret the value entered by the candidate."}}
     </span>
 </div>
-{{/if}}
 
 <div class="panel">
     <label for="placeholderText" class="spinner">{{__ "Placeholder Text"}}</label>
@@ -20,7 +18,6 @@
 
 <hr>
 
-{{#if constraintsAvailable}}
 <div class="panel">
     <h3 class="full-width">{{__ "Constraints"}}</h3>
     <select name="constraint" class="select2" data-has-search="false">
@@ -29,7 +26,6 @@
         {{/each}}
     </select>
 </div>
-{{/if}}
 
 <div class="panel extendedText">
     {{!-- Let the user enter his own pattern --}}
@@ -54,7 +50,6 @@
 
 <hr>
 
-{{#if recommendationsAvailable}}
 <div class="panel extendedText">
     <h3 class="full-width">{{__ "Recommendations"}}</h3>
     <div class="panel">
@@ -66,4 +61,3 @@
         </span>
     </div>
 </div>
-{{/if}}

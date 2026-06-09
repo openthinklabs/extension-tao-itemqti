@@ -30,7 +30,7 @@ use oat\tao\model\ClientLibConfigRegistry;
  */
 class QtiCreatorClientConfigRegistry extends ClientLibConfigRegistry
 {
-    public const CREATOR = "taoQtiItem/controller/creator/index";
+    const CREATOR = "taoQtiItem/controller/creator/index";
 
     /**
      * @param $name
@@ -113,7 +113,7 @@ class QtiCreatorClientConfigRegistry extends ClientLibConfigRegistry
             unset($plugins[$key]);
         }
 
-        $config['plugins'] = array_values($plugins);
+        $config['plugins'] = $plugins;
         $registry->set(self::CREATOR, $config);
     }
 

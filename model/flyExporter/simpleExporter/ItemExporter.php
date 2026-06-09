@@ -1,5 +1,4 @@
 <?php
-
 /**
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,33 +36,33 @@ class ItemExporter extends ConfigurableService implements SimpleExporter
     /**
      * Default csv delimiter
      */
-    public const CSV_DELIMITER = ',';
+    const CSV_DELIMITER = ',';
 
     /**
      * Default csv enclosure
      */
-    public const CSV_ENCLOSURE = '"';
+    const CSV_ENCLOSURE = '"';
 
     /**
      * Default property delimiter
      */
-    public const DEFAULT_PROPERTY_DELIMITER = '|';
+    const DEFAULT_PROPERTY_DELIMITER = '|';
 
     /**
      * Optional config option to set CSV enclosure
      */
-    public const CSV_ENCLOSURE_OPTION = 'enclosure';
+    const CSV_ENCLOSURE_OPTION = 'enclosure';
 
     /**
      * Optional config option to set CSV delimiter
      */
-    public const CSV_DELIMITER_OPTION = 'delimiter';
+    const CSV_DELIMITER_OPTION = 'delimiter';
 
     /**
      * Location of the export file, a relative path with the name of final file.
      * The final destination will be under /tmp.
      */
-    public const OPTION_FILE_LOCATION = 'fileLocation';
+    const OPTION_FILE_LOCATION = 'fileLocation';
 
     /**
      * CSV file headers
@@ -99,6 +98,7 @@ class ItemExporter extends ConfigurableService implements SimpleExporter
         if (!$this->extractors || !$this->columns) {
             throw new ExtractorException('Data config is not correctly set.');
         }
+
     }
 
     /**
@@ -166,18 +166,16 @@ class ItemExporter extends ConfigurableService implements SimpleExporter
 
         $data = ['0' => []];
         foreach ($this->extractors as $extractor) {
+
             $extractor->setItem($item);
             $extractor->run();
             $values = $extractor->getData();
 
             foreach ($values as $key => $value) {
+
                 $interactionData = is_array($value) && count($value) > 1 ? $value : $values;
 
-                if (
-                    array_values(
-                        array_intersect(array_keys($data[0]), array_keys($interactionData))
-                    ) === array_keys($interactionData)
-                ) {
+                if (array_values(array_intersect(array_keys($data[0]), array_keys($interactionData))) === array_keys($interactionData)) {
                     $line = array_intersect_key($data[0], array_flip($this->headers));
                     $data[] = array_merge($line, $interactionData);
                 } else {
@@ -240,8 +238,7 @@ class ItemExporter extends ConfigurableService implements SimpleExporter
 
     private function getFilePath()
     {
-        $filePath = \tao_helpers_Export::getExportPath() . DIRECTORY_SEPARATOR
-            . ltrim($this->getOption(self::OPTION_FILE_LOCATION), '/');
+        $filePath = \tao_helpers_Export::getExportPath() . DIRECTORY_SEPARATOR . ltrim($this->getOption(self::OPTION_FILE_LOCATION), '/');
 
         $basePath = dirname($filePath);
 

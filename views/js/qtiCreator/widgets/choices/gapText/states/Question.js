@@ -62,16 +62,11 @@ define([
                     {
                         name: 'insert',
                         items: ['SpecialChar']
-                    },
-                    {
-                        name: 'language',
-                        items: ['Language']
                     }
                 ],
                 qtiMedia: false,
                 qtiInclude: false,
-                enterMode: CKEditor.ENTER_BR,
-                furiganaPlugin: true
+                enterMode: CKEditor.ENTER_BR
             });
         }
 

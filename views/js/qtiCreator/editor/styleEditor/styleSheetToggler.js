@@ -18,49 +18,31 @@
  */
 define([
     'jquery',
-    'lodash',
-    'i18n',
     'taoQtiItem/qtiCreator/editor/styleEditor/styleEditor',
+    'i18n',
+    'lodash',
     'taoQtiItem/qtiCreator/model/Stylesheet',
     'tpl!taoQtiItem/qtiCreator/tpl/notifications/genericFeedbackPopup',
-    'ui/dialog/confirm',
     'ui/resourcemgr'
-], function ($, _, __, styleEditor, Stylesheet, genericFeedbackPopup, confirmDialog) {
+], function ($, styleEditor, __, _, Stylesheet, genericFeedbackPopup) {
     'use strict';
 
     var $doc = $(document);
 
     var styleSheetToggler = (function () {
+
         var init = function (itemConfig) {
-            const _createInfoBox = function (data) {
-                var $messageBox = $(genericFeedbackPopup(data)),
-                    closeTrigger = $messageBox.find('.close-trigger');
-
-                $('body').append($messageBox);
-
-                closeTrigger.on('click', function () {
-                    $messageBox.fadeOut(function () {
-                        $(this).remove();
-                    });
-                });
-
-                setTimeout(function () {
-                    closeTrigger.trigger('click');
-                }, 4000);
-
-                return $messageBox;
-            };
 
             var cssToggler = $('#style-sheet-toggler'),
                 uploader = $('#stylesheet-uploader'),
                 customCssToggler = $('[data-custom-css]'),
                 getContext = function (trigger) {
                     trigger = $(trigger);
-                    const li = trigger.closest('li');
-                    const stylesheetObj = li.data('stylesheetObj') || new Stylesheet({ href: li.data('css-res') });
-                    const input = li.find('.style-sheet-label-editor');
-                    const labelBox = input.prev('.file-label');
-                    const label = input.val();
+                    var li = trigger.closest('li'),
+                        stylesheetObj = li.data('stylesheetObj') || new Stylesheet({href : li.data('css-res')}),
+                        input = li.find('.style-sheet-label-editor'),
+                        labelBox = input.prev('.file-label'),
+                        label = input.val();
 
                     return {
                         li: li,
@@ -74,12 +56,14 @@ define([
                     };
                 };
 
+
+
             /**
              * Upload custom stylesheets
              */
             uploader.on('click', function () {
+
                 uploader.resourcemgr({
-                    className: 'stylesheets',
                     appendContainer: '#mediaManager',
                     path: '/',
                     root: 'local',
@@ -87,83 +71,51 @@ define([
                     uploadUrl: itemConfig.fileUploadUrl,
                     deleteUrl: itemConfig.fileDeleteUrl,
                     downloadUrl: itemConfig.fileDownloadUrl,
-                    fileExistsUrl: itemConfig.fileExistsUrl,
+                    fileExistsUrl : itemConfig.fileExistsUrl,
                     params: {
                         uri: itemConfig.uri,
                         lang: itemConfig.lang,
                         filters: 'text/css'
                     },
                     pathParam: 'path',
-                    select(e, files) {
-                        const l = files.length;
-                        for (let i = 0; i < l; i++) {
+                    select: function (e, files) {
+                        var i, l = files.length;
+                        for (i = 0; i < l; i++) {
                             styleEditor.addStylesheet(files[i].file);
-                        }
-                    },
-                    hooks: {
-                        deleteFile(file) {
-                            const filePath = [file];
-                            if (file.startsWith('/')) {
-                                filePath.push(file.substring(1));
-                            }
-
-                            const $style = cssToggler.find(filePath.map(path => `[data-css-res="${path}"]`).join(', '));
-                            if ($style.length) {
-                                return new Promise((resolve, reject) => {
-                                    confirmDialog(
-                                        __(
-                                            'As this stylesheet is attached to the item, the item will be automatically saved after the deletion, continue?'
-                                        ),
-                                        () => {
-                                            $('#mediaManager').one('filedelete.resourcemgr', () => {
-                                                deleteStylesheet($style);
-
-                                                $('#item-editor-panel')
-                                                    .trigger('beforesave.qti-creator')
-                                                    .trigger('save.qti-creator');
-                                            });
-                                            resolve();
-                                        },
-                                        reject
-                                    );
-                                });
-                            }
                         }
                     }
                 });
             });
 
+
             /**
              * Confirm to save the item
-             * @param {Object} trigger
              */
-            const deleteStylesheet = function (trigger) {
+            var deleteStylesheet = function(trigger) {
                 var context = getContext(trigger),
                     attr = context.isDisabled ? 'disabled-href' : 'href',
                     cssLinks = $('head link');
 
+
                 styleEditor.getItem().removeStyleSheet(context.stylesheetObj);
 
-                cssLinks.filter(`[${attr}*="${context.cssUri}"]`).remove();
+                cssLinks.filter('[' + attr + '*="' + context.cssUri + '"]').remove();
                 context.li.remove();
 
                 $('.feedback-info').hide();
                 _createInfoBox({
-                    message: __('Style Sheet <b>%s</b> removed<br> Click <i>Add Style Sheet</i> to re-apply.').replace(
-                        '%s',
-                        context.label
-                    ),
+                    message: __('Style Sheet <b>%s</b> removed<br> Click <i>Add Style Sheet</i> to re-apply.').replace('%s', context.label),
                     type: 'info'
                 });
 
                 $doc.trigger('customcssloaded.styleeditor', [styleEditor.getStyle()]);
             };
 
+
             /**
              * Modify stylesheet title (enable)
-             * @param {Object} trigger
              */
-            const initLabelEditor = function (trigger) {
+            var initLabelEditor = function (trigger) {
                 var context = getContext(trigger);
                 context.labelBox.hide();
                 context.input.show();
@@ -172,18 +124,16 @@ define([
             /**
              * Download current stylesheet
              *
-             * @param {Object} trigger
+             * @param trigger
              */
-            const downloadStylesheet = function (trigger) {
+            var downloadStylesheet = function(trigger) {
                 styleEditor.download(getContext(trigger).cssUri);
             };
 
             /**
              * Modify stylesheet title (save modification)
-             * @param {Object} trigger
-             * @returns {Boolean}
              */
-            const saveLabel = function (trigger) {
+            var saveLabel = function (trigger) {
                 var context = getContext(trigger),
                     title = $.trim(context.input.val());
 
@@ -199,30 +149,33 @@ define([
 
             /**
              * Dis/enable style sheets
-             * @param {Object} trigger
              */
-            const handleAvailability = function (trigger) {
-                const context = getContext(trigger);
+            var handleAvailability = function (trigger) {
+                var context = getContext(trigger),
+                    link,
+                    attrTo = 'disabled-href',
+                    attrFrom = 'href';
 
                 // custom styles are handled in a style element, not in a link
-                if (context.isCustomCss || !context.label) {
+                if (context.isCustomCss) {
                     if (context.isDisabled) {
-                        $('#item-editor-user-styles')[0].disabled = false;
+                        styleEditor.create();
                         customCssToggler.removeClass('not-available');
-                    } else {
-                        $('#item-editor-user-styles')[0].disabled = true;
+                    }
+                    else {
+                        styleEditor.erase();
                         customCssToggler.addClass('not-available');
                     }
-                } else {
-                    // all other styles are handled via their link element
-                    const linkDom = Object.values(document.styleSheets).find(
-                        sheet => typeof sheet.href === 'string' && sheet.href.includes(context.label)
-                    );
+                }
+                // all other styles are handled via their link element
+                else {
                     if (context.isDisabled) {
-                        linkDom.disabled = false;
-                    } else {
-                        linkDom.disabled = true;
+                        attrTo = 'href';
+                        attrFrom = 'disabled-href';
                     }
+
+                    link = $('link[' + attrFrom + '$="' + context.cssUri + '"]');
+                    link.attr(attrTo, link.attr(attrFrom)).removeAttr(attrFrom);
                 }
 
                 // add some visual feed back to the triggers
@@ -239,14 +192,18 @@ define([
                 // distribute click actions
                 if (className.indexOf('icon-bin') > -1) {
                     deleteStylesheet(e.target);
-                } else if (className.indexOf('file-label') > -1) {
+                }
+                else if (className.indexOf('file-label') > -1) {
                     initLabelEditor(e.target);
-                } else if (className.indexOf('icon-preview') > -1) {
+                }
+                else if (className.indexOf('icon-preview') > -1) {
                     handleAvailability(e.target);
-                } else if (className.indexOf('icon-download') > -1) {
+                }
+                else if(className.indexOf('icon-download') > -1) {
                     downloadStylesheet(e.target);
                 }
             });
+
 
             /**
              * Handle renaming on enter
@@ -263,12 +220,36 @@ define([
             cssToggler.on('blur', 'input', function (e) {
                 saveLabel(e.target);
             });
+
+
+        };
+
+
+        var _createInfoBox = function(data){
+            var $messageBox = $(genericFeedbackPopup(data)),
+                closeTrigger = $messageBox.find('.close-trigger');
+
+            $('body').append($messageBox);
+
+            closeTrigger.on('click', function(){
+                $messageBox.fadeOut(function(){
+                    $(this).remove();
+                });
+            });
+
+            setTimeout(function() {
+                closeTrigger.trigger('click');
+            }, 4523);
+
+            return $messageBox;
         };
 
         return {
             init: init
         };
+
     })();
 
     return styleSheetToggler;
 });
+

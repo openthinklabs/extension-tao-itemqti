@@ -27,9 +27,6 @@ class addValidationSettings extends \common_ext_action_InstallAction
         $validationService->setServiceManager($serviceManager);
         $serviceManager->register(ValidationService::SERVICE_ID, $validationService);
 
-        return new \common_report_Report(
-            \common_report_Report::TYPE_SUCCESS,
-            'Validation service has been successfully set up'
-        );
+        return new \common_report_Report(\common_report_Report::TYPE_SUCCESS, 'Validation service has been successfully set up');
     }
 }

@@ -22,12 +22,17 @@ define([
     'taoQtiItem/qtiCreator/model/Item',
     'taoQtiItem/qtiCreator/model/qtiClasses',
     'taoQtiItem/qtiItem/helper/itemScore',
+    'util/url',
     'core/dataProvider/request',
-    'taoQtiItem/qtiCreator/widgets/helpers/qtiIdentifier',
-    'taoQtiItem/qtiCreator/helper/languages',
-    'taoQtiItem/qtiCreator/helper/itemIdentifier'
-], function ($, _, Loader, Item, qtiClasses, itemScoreHelper, request, qtiIdentifier, languages, itemIdentifier) {
+    'taoQtiItem/qtiCreator/widgets/helpers/qtiIdentifier'
+], function ($, _, Loader, Item, qtiClasses, itemScoreHelper, urlUtil, request, qtiIdentifier) {
     'use strict';
+    const _generateIdentifier = function _generateIdentifier(uri) {
+        const pos = uri.lastIndexOf('#');
+        // identifier by default should be no more then 32
+        return uri.substring(pos + 1, pos + 1 + qtiIdentifier.maxQtiIdLength);
+    };
+
     const decodeHtml = function (str) {
         const map = {
             '&amp;': '&',
@@ -47,21 +52,17 @@ define([
         'http://www.imsglobal.org/xsd/imsqti_v2p2': 'http://www.imsglobal.org/xsd/qti/qtiv2p2/imsqti_v2p2.xsd'
     };
 
+    const languagesUrl = urlUtil.route('index', 'Languages', 'tao');
+
     const creatorLoader = {
         loadItem: function loadItem(config, callback) {
             if (config.uri) {
-                const langList = languages.getList();
-
+                const langList = request(languagesUrl);
                 // request doesn't handle empty response with 200 code. See: core/request.js:240
                 const itemRdf = request(config.itemDataUrl, { uri: config.uri }).catch(d => d);
 
-                const containsOnlyIdentifier = data => {
-                    const keys = Object.keys(data);
-                    return keys && keys.length === 1 && keys[0] === 'identifier';
-                };
-
                 Promise.all([langList, itemRdf]).then(([languagesList, data]) => {
-                    if (!containsOnlyIdentifier(data.itemData)) {
+                    if (data.itemData) {
                         for (const response in data.itemData.responses) {
                             const newObject = {};
                             for (const mapKey in data.itemData.responses[response].mapping) {
@@ -71,7 +72,7 @@ define([
                         }
                     }
 
-                    if (!containsOnlyIdentifier(data.itemData) && data.itemData.qtiClass === 'assessmentItem') {
+                    if (data.itemData && data.itemData.qtiClass === 'assessmentItem') {
                         const loader = new Loader().setClassesLocation(qtiClasses);
                         const itemData = data.itemData;
 
@@ -94,8 +95,13 @@ define([
 
                             const { responseProcessing: { processingType } = {} } = loadedItem;
                             if (!config.perInteractionRp && processingType === 'templateDriven') {
-                                const { responses = {}, responseProcessing: { data, responseRules = [] } = {} } =
-                                    itemData;
+                                const {
+                                    responses = {},
+                                    responseProcessing: {
+                                        data,
+                                        responseRules = []
+                                    } = {}
+                                } = itemData;
                                 const responseIdentifiers = [];
 
                                 _.forOwn(responses, ({ identifier }) => {
@@ -111,7 +117,7 @@ define([
                             callback(loadedItem, this.getLoadedClasses());
                         });
                     } else {
-                        const newItem = new Item().id(data.itemData.identifier).attr('title', config.label);
+                        const newItem = new Item().id(_generateIdentifier(config.uri)).attr('title', config.label);
 
                         newItem.createResponseProcessing();
 

@@ -28,7 +28,7 @@ namespace oat\taoQtiItem\model\portableElement\clientConfigRegistry;
  */
 class CustomInteractionRegistry extends AbstractPortableElementRegistry
 {
-    public const CI_REGISTRY = "taoQtiItem/portableElementRegistry/ciRegistry";
+    const CI_REGISTRY = "taoQtiItem/portableElementRegistry/ciRegistry";
 
     protected function getClientModule()
     {

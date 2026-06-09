@@ -20,31 +20,34 @@ define([
     'jquery',
     'lodash',
     'i18n',
-    'services/features',
     'taoQtiItem/qtiItem/helper/response',
     'taoQtiItem/qtiCreator/widgets/helpers/formElement',
     'taoQtiItem/qtiCreator/widgets/component/minMax/minMax',
     'tpl!taoQtiItem/qtiCreator/tpl/forms/response/responseForm',
     'taoQtiItem/qtiCreator/widgets/helpers/modalFeedbackRule',
-    'taoQtiItem/qtiCreator/helper/qtiElements',
-    'taoQtiItem/qtiCreator/helper/xmlRenderer',
+    'taoQtiItem/qtiCreator/helper/qtiElements'
 ], function (
     $,
     _,
     __,
-    features,
     responseHelper,
     formElement,
     minMaxComponentFactory,
     responseFormTpl,
     modalFeedbackRule,
-    qtiElements,
-    xmlRenderer
+    qtiElements
 ) {
     'use strict';
 
-    const modalFeedbackConfigKey = 'taoQtiItem/creator/interaction/property/modalFeedback';
-    const showResponseIdentifierKey = 'taoQtiItem/creator/interaction/response/property/identifier';
+    const _saveCallbacks = {
+        mappingAttr: function mappingAttr(response, value, key) {
+            if (value === '') {
+                response.removeMappingAttribute(key);
+            } else {
+                response.setMappingAttribute(key, value);
+            }
+        }
+    };
 
     /**
      * Get the list of all available response processing templates available in the platform
@@ -137,7 +140,7 @@ define([
                 break;
         }
 
-        if ((rp.processingType === 'templateDriven' && !allowCustomTemplate) || !features.isVisible('taoQtiItem/creator/interaction/response/responseProcessing/custom')) {
+        if (rp.processingType === 'templateDriven' && !allowCustomTemplate) {
             delete templates.CUSTOM;
         } else {
             //consider as custom
@@ -246,11 +249,10 @@ define([
             widget.$responseForm.html(
                 responseFormTpl({
                     identifier: response.id(),
-                    showIdentifier: features.isVisible(showResponseIdentifierKey),
                     serial: response.getSerial(),
                     defineCorrect: defineCorrect,
                     editMapping: editMapping,
-                    editFeedbacks: template !== 'CUSTOM' && features.isVisible(modalFeedbackConfigKey),
+                    editFeedbacks: template !== 'CUSTOM',
                     mappingDisabled: _.isEmpty(response.mapEntries),
                     template: template,
                     templates: _getAvailableRpTemplates(
@@ -270,27 +272,19 @@ define([
                 _toggleCorrectWidgets(defineCorrect);
             }
 
-            const lowerBoundValue = response.getMappingAttribute('lowerBound');
-            const upperBoundValue = response.getMappingAttribute('upperBound');
             minMaxComponentFactory(widget.$responseForm.find('.response-mapping-attributes > .min-max-panel'), {
                 min: {
                     fieldName: 'lowerBound',
-                    value: !isNaN(lowerBoundValue) ? parseFloat(lowerBoundValue) : null,
-                    helpMessage: __('Minimal  score for this interaction.'),
-                    canBeNull: true,
-                    lowerThreshold: Number.NEGATIVE_INFINITY,
+                    value: _.parseInt(response.getMappingAttribute('lowerBound')) || 0,
+                    helpMessage: __('Minimal  score for this interaction.')
                 },
                 max: {
                     fieldName: 'upperBound',
-                    value: !isNaN(upperBoundValue) ? parseFloat(upperBoundValue) : null,
-                    helpMessage: __('Maximal score for this interaction.'),
-                    canBeNull: true,
-                    lowerThreshold: 0,
+                    value: _.parseInt(response.getMappingAttribute('upperBound')) || 0,
+                    helpMessage: __('Maximal score for this interaction.')
                 },
                 upperThreshold: Number.MAX_SAFE_INTEGER,
-                lowerThreshold: 0,
-                syncValues: true,
-                allowDecimal: true
+                syncValues: true
             });
 
             const formChangeCallbacks = {
@@ -304,9 +298,7 @@ define([
                         answerStateHelper.initResponseForm(widget);
                     }
                 },
-                defaultValue: function (response, value, key) {
-                    response.setMappingAttribute(key, value);
-                },
+                defaultValue: _saveCallbacks.mappingAttr,
                 template: function (res, value) {
                     rp.setProcessingType(value === 'CUSTOM' ? 'custom' : 'templateDriven');
                     response.setTemplate(value);
@@ -330,10 +322,8 @@ define([
                 formElement.getLowerUpperAttributeCallbacks('lowerBound', 'upperBound', {
                     attrMethodNames: {
                         set: 'setMappingAttribute',
-                        remove: 'removeMappingAttribute',
-                    },
-                    floatVal: true,
-                    allowNull: true
+                        remove: 'removeMappingAttribute'
+                    }
                 })
             );
 
@@ -357,26 +347,6 @@ define([
         isCorrectDefined: function isCorrectDefined(widget) {
             const response = widget.element.getResponseDeclaration();
             return !!_.size(response.getCorrect());
-        },
-
-        /**
-         * Create the outcome score if rp required
-         * @param {Object} widget
-         * @returns {void}
-         */
-        createOutcomeScore: function createOutcomeScore(widget) {
-            const interaction = widget.element;
-            const item = interaction.getRootElement();
-            const outcomeScore = item.getOutcomeDeclaration('SCORE');
-            const rp = item.responseProcessing;
-            const rpXml = xmlRenderer.render(rp);
-
-            if (rpXml && !outcomeScore) {
-                item.createOutcomeDeclaration({
-                    cardinality: 'single',
-                    baseType: 'float'
-                }).buildIdentifier('SCORE', false);
-            }
         }
     };
 

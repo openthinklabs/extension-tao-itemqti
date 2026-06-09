@@ -31,6 +31,7 @@ use oat\taoQtiItem\model\qti\Element;
  */
 class Img extends Element
 {
+
     /**
      * the QTI tag name as defined in QTI standard
      *

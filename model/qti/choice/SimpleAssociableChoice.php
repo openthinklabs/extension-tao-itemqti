@@ -35,6 +35,7 @@ use oat\taoQtiItem\model\qti\choice\ContainerChoice;
  */
 class SimpleAssociableChoice extends ContainerChoice
 {
+
     /**
      * the QTI tag name as defined in QTI standard
      *

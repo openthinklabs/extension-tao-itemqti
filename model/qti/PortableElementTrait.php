@@ -18,10 +18,9 @@
  * Copyright (c) 2016 (original work) Open Assessment Technologies SA
  *
  */
-
 namespace oat\taoQtiItem\model\qti;
 
-use DOMElement;
+use \DOMElement;
 
 /**
  * Trait EventManagerAwareTrait
@@ -29,6 +28,7 @@ use DOMElement;
  */
 trait PortableElementTrait
 {
+
     protected $config = [];
     protected $modules = [];
 

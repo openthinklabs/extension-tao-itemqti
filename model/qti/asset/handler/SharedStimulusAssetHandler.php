@@ -21,7 +21,6 @@
 
 namespace oat\taoQtiItem\model\qti\asset\handler;
 
-use core_kernel_classes_Class;
 use Laminas\ServiceManager\ServiceLocatorAwareTrait;
 use oat\generis\model\OntologyAwareTrait;
 use oat\tao\helpers\FileUploadException;
@@ -49,7 +48,7 @@ class SharedStimulusAssetHandler implements AssetHandler
 
     protected $qtiModel;
     protected $sharedFiles = [];
-    private array $targetClassPath;
+    protected $parentPath;
 
     /**
      * MediaAssetHandler constructor.
@@ -99,7 +98,7 @@ class SharedStimulusAssetHandler implements AssetHandler
             $newXmlFile,
             $relativePath,
             $absolutePath,
-            $this->getTargetClassPath()
+            $this->buildLabelBaseOnParentPath()
         );
 
         \common_Logger::i('Auxiliary file \'' . $absolutePath . '\' added to shared storage.');
@@ -184,14 +183,21 @@ class SharedStimulusAssetHandler implements AssetHandler
         return $this;
     }
 
-    public function getTargetClassPath(): array
+    /**
+     * @return mixed
+     */
+    public function getParentPath()
     {
-        return $this->targetClassPath;
+        return $this->parentPath;
     }
 
-    public function setTargetClassPath(array $targetClassPath): self
+    /**
+     * @param mixed $parentPath
+     * @return $this
+     */
+    public function setParentPath($parentPath)
     {
-        $this->targetClassPath = $targetClassPath;
+        $this->parentPath = $parentPath;
         return $this;
     }
 
@@ -203,7 +209,7 @@ class SharedStimulusAssetHandler implements AssetHandler
         // Nothing to do
     }
 
-    private function getSharedStimulusMediaEncoderService(): SharedStimulusMediaEncoder
+    private function getSharedStimulusMediaEncoderService (): SharedStimulusMediaEncoder
     {
         return $this->getServiceLocator()->get(SharedStimulusMediaEncoder::SERVICE_ID);
     }
@@ -211,5 +217,13 @@ class SharedStimulusAssetHandler implements AssetHandler
     private function getSharedStimulusFactory(): SharedStimulusFactory
     {
         return $this->getServiceLocator()->get(SharedStimulusFactory::class);
+    }
+
+    private function buildLabelBaseOnParentPath()
+    {
+        $parentPath = $this->getParentPath();
+        $decodedParentPath = json_decode($parentPath);
+
+        return reset($decodedParentPath);
     }
 }

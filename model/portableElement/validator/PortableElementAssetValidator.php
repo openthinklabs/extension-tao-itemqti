@@ -106,9 +106,7 @@ abstract class PortableElementAssetValidator implements Validatable
                     if ($this->isOptionalConstraint($key, $constraint)) {
                         continue;
                     }
-                    throw new PortableElementInvalidAssetException(
-                        'Missing asset file for ' . $key . ':' . $constraint
-                    );
+                    throw new PortableElementInvalidAssetException('Missing asset file for ' . $key . ':' . $constraint);
                 }
                 if (is_array($asset[$constraint])) {
                     //get a flat list out of the structure of file data

@@ -25,4 +25,5 @@ use oat\tao\model\event\AbstractExportEvent;
 
 class QtiItemMetadataExportEvent extends AbstractExportEvent
 {
+
 }

@@ -26,19 +26,8 @@ define([
     'taoQtiItem/qtiCreator/widgets/component/minMax/minMax',
     'tpl!taoQtiItem/qtiCreator/tpl/forms/interactions/choice',
     'taoQtiItem/qtiCommonRenderer/helpers/sizeAdapter',
-    'services/features',
     'ui/liststyler'
-], function (
-    _,
-    __,
-    stateFactory,
-    Question,
-    formElement,
-    minMaxComponentFactory,
-    formTpl,
-    sizeAdapter,
-    features
-) {
+], function (_, __, stateFactory, Question, formElement, minMaxComponentFactory, formTpl, sizeAdapter) {
     'use strict';
 
     const exitState = function exitState() {
@@ -103,12 +92,11 @@ define([
         return !_.isNull(listStyle) ? listStyle.pop().replace(listStylePrefix, '') : null;
     }
 
-    ChoiceInteractionStateQuestion.prototype.initForm = function initForm() {
+    ChoiceInteractionStateQuestion.prototype.initForm = function initForm(updateCardinality) {
         let callbacks;
         const widget = this.widget;
         const $form = widget.$form;
         const interaction = widget.element;
-        const response = interaction.getResponseDeclaration();
         const currListStyle = getListStyle(interaction);
         const $choiceArea = widget.$container.find('.choice-area');
         let minMaxComponent = null;
@@ -186,24 +174,13 @@ define([
         type = selectedCase.type;
         constraints = selectedCase.constraints;
 
-        const allowElimination = features.isVisible('taoQtiItem/creator/interaction/choice/property/allowElimination');
-        const shuffleChoices = features.isVisible('taoQtiItem/creator/interaction/choice/property/shuffle');
-        const choiceOptionsAvailable = allowElimination || shuffleChoices;
-        const orientationAvailable = features.isVisible('taoQtiItem/creator/interaction/choice/property/orientation');
         $form.html(
             formTpl({
                 type,
                 constraints,
                 shuffle: !!interaction.attr('shuffle'),
                 horizontal: interaction.attr('orientation') === 'horizontal',
-                eliminable: /\beliminable\b/.test(interaction.attr('class')),
-                enabledFeatures: {
-                    allowElimination,
-                    shuffleChoices,
-                    choiceOptionsAvailable,
-                    listStyle: features.isVisible('taoQtiItem/creator/interaction/choice/property/listStyle'),
-                    orientationAvailable
-                }
+                eliminable: /\beliminable\b/.test(interaction.attr('class'))
             })
         );
 
@@ -249,7 +226,7 @@ define([
 
         //data change callbacks with the usual min/maxChoices
         callbacks = formElement.getMinMaxAttributeCallbacks('minChoices', 'maxChoices', {
-            updateCardinality: false,
+            updateCardinality: updateCardinality,
             allowNull: true
         });
 
@@ -282,7 +259,6 @@ define([
             $form.find('[name="constraints"][value="none"]').prop('checked', true);
             $form.find('[name="constraints"][value="other"]').prop('disabled', true);
             deleteMinMax();
-            response.attr('cardinality', 'single');
         };
 
         const setSelectedCase = () => {
@@ -301,11 +277,8 @@ define([
             if (type === 'single') {
                 $form.find('[name="constraints"][value="other"]').prop('disabled', true);
                 deleteMinMax();
-                response.attr('cardinality', 'single');
-                response.setCorrect({});
             } else {
                 $form.find('[name="constraints"][value="other"]').prop('disabled', false);
-                response.attr('cardinality', 'multiple');
             }
         };
 

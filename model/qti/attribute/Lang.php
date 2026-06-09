@@ -35,6 +35,7 @@ use oat\taoQtiItem\model\qti\attribute\Attribute;
  */
 class Lang extends Attribute
 {
+    
     protected static $name = 'xml:lang';
     protected static $type = 'oat\\taoQtiItem\\model\\qti\\datatype\\Language';
     protected static $defaultValue = null;

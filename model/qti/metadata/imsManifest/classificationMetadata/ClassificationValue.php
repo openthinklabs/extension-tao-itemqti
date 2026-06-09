@@ -25,4 +25,5 @@ use oat\taoQtiItem\model\qti\metadata\MetadataValue;
 
 interface ClassificationValue extends MetadataValue
 {
+
 }

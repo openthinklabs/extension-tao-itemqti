@@ -28,7 +28,7 @@ define(['lodash', 'taoQtiItem/portableElementRegistry/factory/icRegistry', 'modu
         providers = config.providers;
     }
 
-    _.forEach(providers, function(provider){
+    _.each(providers, function(provider){
         if(provider.name && provider.module){
             registry.registerProvider(provider.module);
         }

@@ -38,7 +38,7 @@ define([
         var states = {},
             elements = item.getComposingElements();
 
-        _.forEach(elements, function(element){
+        _.each(elements, function(element){
            var widget = element.data('widget');
            if(widget){
                states[element.getSerial()] = widget.getCurrentState().name;

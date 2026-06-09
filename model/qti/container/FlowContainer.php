@@ -35,6 +35,7 @@ namespace oat\taoQtiItem\model\qti\container;
  */
 interface FlowContainer
 {
+
     /**
      * Get the flow content
      *

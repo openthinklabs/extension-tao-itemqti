@@ -19,7 +19,6 @@
  *
  *
  */
-
 namespace oat\taoQtiItem\model\qti\response\interactionResponseProcessing;
 
 use oat\taoQtiItem\model\qti\response\interactionResponseProcessing\MatchCorrectTemplate;
@@ -46,7 +45,7 @@ class MatchCorrectTemplate extends Template
      * @access public
      * @var string
      */
-    public const CLASS_ID = 'correct';
+    const CLASS_ID = 'correct';
 
     // --- OPERATIONS ---
 
@@ -61,13 +60,13 @@ class MatchCorrectTemplate extends Template
     {
         $returnValue = (string) '';
 
-
+        
         $returnValue = 'if(match(null, ' .
             'getResponse("' . $this->getResponse()->getIdentifier() . '"), ' .
             'getCorrect("' . $this->getResponse()->getIdentifier() . '"))) ' .
             'setOutcomeValue("' . $this->getOutcome()->getIdentifier() . '", 1); ' .
             'else setOutcomeValue("' . $this->getOutcome()->getIdentifier() . '", 0);';
-
+        
 
         return (string) $returnValue;
     }
@@ -83,7 +82,7 @@ class MatchCorrectTemplate extends Template
     {
         $returnValue = (string) '';
 
-
+        
         $returnValue = '<responseCondition>
 		    <responseIf>
 		        <match>
@@ -95,7 +94,7 @@ class MatchCorrectTemplate extends Template
 		        </setOutcomeValue>
 		    </responseIf>
 		</responseCondition>';
-
+        
 
         return (string) $returnValue;
     }

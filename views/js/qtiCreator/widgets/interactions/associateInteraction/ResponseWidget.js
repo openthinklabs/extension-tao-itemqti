@@ -80,7 +80,7 @@ define([
                 correctResponse = _.values(responseDeclaration.getCorrect()),
                 mapEntries = responseDeclaration.getMapEntries();
 
-            _.forEach(correctResponse, function(pair) {
+            _.each(correctResponse, function(pair) {
 
                 var sortedIdPair = pair.split(' ').sort(),
                     sortedIdPairKey = sortedIdPair.join(' ');
@@ -119,7 +119,7 @@ define([
                 formatedRes = {list : { pair : [] }};
             }
 
-            _.forEach(response, function(pairString){
+            _.each(response, function(pairString){
                 var pair = pairString.split(' ');
                 if(cardinality === 'single'){
                     formatedRes.base.pair = pair;
@@ -135,7 +135,7 @@ define([
             var res = [];
 
             if(formatedResponse.list && formatedResponse.list.pair){
-                _.forEach(formatedResponse.list.pair, function(pair){
+                _.each(formatedResponse.list.pair, function(pair){
                     res.push(pair.join(' '));
                 });
             }else if(formatedResponse.base && formatedResponse.base.pair){

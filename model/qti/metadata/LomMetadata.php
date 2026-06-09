@@ -23,7 +23,7 @@ namespace oat\taoQtiItem\model\qti\metadata;
 
 interface LomMetadata
 {
-    public const LOM_NAMESPACE = 'http://ltsc.ieee.org/xsd/LOM';
+    const LOM_NAMESPACE = 'http://ltsc.ieee.org/xsd/LOM';
 
     public function getPath();
 }

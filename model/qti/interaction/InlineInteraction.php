@@ -36,6 +36,7 @@ use oat\taoQtiItem\model\qti\interaction\Interaction;
  */
 abstract class InlineInteraction extends Interaction
 {
+
     public static function getTemplateQti()
     {
         return static::getTemplatePath() . 'interactions/qti.inlineInteraction.tpl.php';

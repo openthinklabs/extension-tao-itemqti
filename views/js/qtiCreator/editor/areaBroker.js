@@ -13,7 +13,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2016-2024 (original work) Open Assessment Technologies SA
+ * Copyright (c) 2016 (original work) Open Assessment Technlogies SA
  *
  */
 
@@ -33,7 +33,10 @@
  *
  * @author Bertrand Chevrier <bertrand@taotesting.com>
  */
-define(['lodash', 'ui/areaBroker'], function (_, areaBroker) {
+define([
+    'lodash',
+    'ui/areaBroker'
+], function (_, areaBroker) {
     'use strict';
 
     var requireAreas = [
@@ -41,7 +44,6 @@ define(['lodash', 'ui/areaBroker'], function (_, areaBroker) {
         'menuLeft',
         'menuRight',
         'editorBar',
-        'editorWrapper',
         'title',
         'toolbar',
         'interactionPanel',
@@ -65,4 +67,5 @@ define(['lodash', 'ui/areaBroker'], function (_, areaBroker) {
      * @throws {TypeError} without a valid container
      */
     return _.partial(areaBroker, requireAreas);
+
 });

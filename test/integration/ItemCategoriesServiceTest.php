@@ -33,6 +33,7 @@ use Prophecy\Prophet;
  */
 class ItemCategoriesServiceTest extends TaoPhpUnitTestRunner
 {
+
     /**
      * tests initialization
      * load qti service

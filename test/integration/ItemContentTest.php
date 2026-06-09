@@ -24,9 +24,7 @@ use oat\tao\test\TaoPhpUnitTestRunner;
 use oat\taoQtiItem\model\qti\ImportService;
 use oat\taoItems\model\media\LocalItemSource;
 
-// phpcs:disable PSR1.Files.SideEffects
 include_once dirname(__FILE__) . '/../../includes/raw_start.php';
-// phpcs:enable PSR1.Files.SideEffects
 
 /**
  * test the item content access
@@ -34,6 +32,7 @@ include_once dirname(__FILE__) . '/../../includes/raw_start.php';
  */
 class ItemContentTest extends TaoPhpUnitTestRunner
 {
+
     /**
      * tests initialization
      * load qti service
@@ -47,10 +46,7 @@ class ItemContentTest extends TaoPhpUnitTestRunner
     public function testResourceManager()
     {
         $itemClass = taoItems_models_classes_ItemsService::singleton()->getRootClass();
-        $report = ImportService::singleton()->importQTIPACKFile(
-            dirname(__FILE__) . '/samples/package/QTI/package.zip',
-            $itemClass
-        );
+        $report = ImportService::singleton()->importQTIPACKFile(dirname(__FILE__) . '/samples/package/QTI/package.zip', $itemClass);
 
         $items = [];
         foreach ($report as $itemReport) {

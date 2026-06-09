@@ -61,7 +61,7 @@ define([
 
         },
         function destroy(){
-            _.invokeMap(this.popups, 'destroy');
+            _.invoke(this.popups, 'destroy');
             this.popups = null;
             if (this.fields && this.fields.$mathml) {
                 this.fields.$mathml.data('$tooltip').dispose();
@@ -229,13 +229,12 @@ define([
         var self = this,
             popupOptions = {
                 windowTitle: 'LaTeX (WYSIWYG)',
-                width: 655,
+                width: 640,
                 height: 280,
                 minWidth: 460,
                 maxWidth: 960,
                 minHeight: 220,
-                maxHeight: 640,
-                resizableEdges: { top: false, right: true, bottom: true, left: true }
+                maxHeight: 640
             };
 
         return windowPopupFactory({}, popupOptions)
@@ -274,8 +273,7 @@ define([
                 minWidth: 240,
                 maxWidth: 960,
                 minHeight: 160,
-                maxHeight: 640,
-                resizableEdges: { top: false, right: true, bottom: true, left: true }
+                maxHeight: 640
             },
             smallField = self.fields['$' + popupMode]; // the corresponding "small" field in the widget form
 

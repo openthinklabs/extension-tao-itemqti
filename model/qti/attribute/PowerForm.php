@@ -35,6 +35,7 @@ use oat\taoQtiItem\model\qti\attribute\Attribute;
  */
 class PowerForm extends Attribute
 {
+    
     protected static $name = 'powerForm';
     protected static $type = 'oat\\taoQtiItem\\model\\qti\\datatype\\QtiBoolean';
     protected static $defaultValue = null;

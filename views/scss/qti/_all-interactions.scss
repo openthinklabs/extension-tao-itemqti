@@ -7,15 +7,6 @@
             }
         }
     }
-    .instruction-container {
-        clear: both;
-    }
 }
 
-.__custom__remove-instructions, .remove-instructions {
-    .qti-interaction {
-        .instruction-container {
-            display: none;
-        }
-    }
-}
+

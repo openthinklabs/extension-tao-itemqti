@@ -36,6 +36,7 @@ use oat\taoQtiItem\model\qti\interaction\BlockInteraction;
  */
 class ExtendedTextInteraction extends BlockInteraction
 {
+
     /**
      * the QTI tag name as defined in QTI standard
      *
@@ -45,7 +46,7 @@ class ExtendedTextInteraction extends BlockInteraction
     protected static $qtiTagName = 'extendedTextInteraction';
     protected static $choiceClass = ''; //none
     protected static $baseType = 'string';
-
+    
     protected function getUsedAttributes()
     {
         return array_merge(
@@ -63,10 +64,10 @@ class ExtendedTextInteraction extends BlockInteraction
                 ]
         );
     }
-
+    
     public function getBaseType()
     {
-
+        
         $returnValue = parent::getBaseType();
 
         $response = $this->getResponse();
@@ -81,7 +82,7 @@ class ExtendedTextInteraction extends BlockInteraction
                 $returnValue = $baseType;
             }
         }
-
+        
         return $returnValue;
     }
 }

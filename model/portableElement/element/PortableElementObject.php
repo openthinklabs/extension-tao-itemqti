@@ -302,11 +302,7 @@ abstract class PortableElementObject
         $paths = [];
         foreach ($this->getRuntime() as $key => $value) {
             if (in_array($key, ['hook', 'libraries', 'stylesheets', 'mediaFiles', 'icon', 'src'])) {
-                $paths[$key] = preg_replace(
-                    '/^(.\/)(.*)/',
-                    $this->getTypeIdentifier() . "/$2",
-                    $this->getRuntimeKey($key)
-                );
+                $paths[$key] = preg_replace('/^(.\/)(.*)/', $this->getTypeIdentifier() . "/$2", $this->getRuntimeKey($key));
             }
         }
         return $paths;
@@ -338,11 +334,7 @@ abstract class PortableElementObject
         $paths = [];
         foreach ($this->getCreator() as $key => $value) {
             if (in_array($key, ['hook', 'libraries', 'stylesheets', 'mediaFiles', 'icon', 'src'])) {
-                $paths[$key] = preg_replace(
-                    '/^(.\/)(.*)/',
-                    $this->getTypeIdentifier() . "/$2",
-                    $this->getCreatorKey($key)
-                );
+                $paths[$key] = preg_replace('/^(.\/)(.*)/', $this->getTypeIdentifier() . "/$2", $this->getCreatorKey($key));
             }
         }
         return $paths;

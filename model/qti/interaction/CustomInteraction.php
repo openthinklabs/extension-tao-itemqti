@@ -37,8 +37,9 @@ use oat\taoQtiItem\model\qti\QtiNamespace;
  */
 abstract class CustomInteraction extends Interaction
 {
+    
     protected static $qtiTagName = 'customInteraction';
-
+    
     protected $typeIdentifier = '';//to be set in advance, read only, non editable
     protected $markup = '';
 
@@ -54,12 +55,12 @@ abstract class CustomInteraction extends Interaction
 
     public function toArray($filterVariableContent = false, &$filtered = [])
     {
-
+        
         $returnValue = parent::toArray($filterVariableContent, $filtered);
-
+        
         $returnValue['typeIdentifier'] = $this->typeIdentifier;
         $returnValue['markup'] = $this->markup;
-
+        
         return $returnValue;
     }
 
@@ -83,12 +84,12 @@ abstract class CustomInteraction extends Interaction
 
     protected function getTemplateQtiVariables()
     {
-
+        
         $variables = parent::getTemplateQtiVariables();
-
+        
         $variables['typeIdentifier'] = $this->typeIdentifier;
         $variables['markup'] = $this->markup;
-
+        
         return $variables;
     }
 
@@ -101,7 +102,7 @@ abstract class CustomInteraction extends Interaction
      */
     public function feed(ParserFactory $parser, DOMElement $data, QtiNamespace $xmlns = null)
     {
-
+        
         $markup = $parser->getBodyData($data->item(0), true);
         $this->setMarkup($markup);
     }

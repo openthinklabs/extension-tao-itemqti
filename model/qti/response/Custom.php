@@ -36,6 +36,7 @@ use oat\taoQtiItem\helpers\QtiSerializer;
  */
 class Custom extends ResponseProcessing implements Rule
 {
+
     /**
      * contains the raw qti rule xml
      *
@@ -112,7 +113,7 @@ class Custom extends ResponseProcessing implements Rule
     {
 
         $returnValue = parent::toArray($filterVariableContent, $filtered);
-
+        
         $rpSerialized = QtiSerializer::parseResponseProcessingXml(simplexml_load_string($this->data));
         $protectedData = [
             'processingType' => 'custom',

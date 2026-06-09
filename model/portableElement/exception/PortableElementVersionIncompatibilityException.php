@@ -23,4 +23,5 @@ namespace oat\taoQtiItem\model\portableElement\exception;
 
 class PortableElementVersionIncompatibilityException extends PortableElementException
 {
+
 }

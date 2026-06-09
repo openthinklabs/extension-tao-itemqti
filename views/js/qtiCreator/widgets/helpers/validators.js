@@ -22,17 +22,17 @@ define([
     'i18n',
     'taoQtiItem/qtiItem/core/Element',
     'taoQtiItem/qtiCreator/model/helper/invalidator',
-    'taoQtiItem/qtiCreator/widgets/helpers/qtiResponseIdentifier'
-], function (validators, _, __, Element, invalidator, qtiResponseIdentifier) {
+    'taoQtiItem/qtiCreator/widgets/helpers/qtiIdentifier'
+], function (validators, _, __, Element, invalidator, qtiIdentifier) {
     'use strict';
 
-    const _qtiIdPattern = qtiResponseIdentifier.pattern;
+    const _qtiIdPattern = qtiIdentifier.pattern;
     const typeToMessage = {
         item: __('Invalid identifier'),
         response: __('Invalid response identifier'),
         outcome: __('Invalid Outcome Declaration')
     };
-    const invalidIdentifier = qtiResponseIdentifier.invalidQtiIdMessage;
+    const invalidIdentifier = qtiIdentifier.invalidQtiIdMessage;
     const validateIdentifier = (value, callback, options, type) => {
         if (typeof callback === 'function') {
             const valid = _qtiIdPattern.test(value);
@@ -50,7 +50,7 @@ define([
 
     const qtiValidators = [
         {
-            name: 'qtiResponseIdentifier',
+            name: 'qtiIdentifier',
             message: `<b>${typeToMessage.item}</b></br>${invalidIdentifier}`,
             validate: function validate(value, callback, options) {
                 validateIdentifier(value, callback, options, 'item');
@@ -125,7 +125,7 @@ define([
         }
     ];
 
-    _.forEach(qtiValidators, function (rule) {
+    _.each(qtiValidators, function (rule) {
         validators.register(rule.name, rule);
     });
 

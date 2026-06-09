@@ -43,6 +43,7 @@ use oat\taoQtiItem\model\qti\interaction\MatchInteraction;
  */
 class QtiModelTest extends TaoPhpUnitTestRunner
 {
+
     /**
      * tests initialization
      * load qti service
@@ -71,10 +72,7 @@ class QtiModelTest extends TaoPhpUnitTestRunner
         $myInteraction->removeChoice($myChoice1);
         $this->assertEquals(count($myInteraction->getChoices()), 1);
 
-        $myItem->addInteraction(
-            $myInteraction,
-            "Adding my interaction here {$myInteraction->getPlaceholder()}. And not there."
-        );
+        $myItem->addInteraction($myInteraction, "Adding my interaction here {$myInteraction->getPlaceholder()}. And not there.");
         $this->assertNotNull($myInteraction->getRelatedItem());
         $this->assertEquals($myInteraction->getRelatedItem()->getSerial(), $myItem->getSerial());
 
@@ -108,15 +106,10 @@ class QtiModelTest extends TaoPhpUnitTestRunner
 
         $data = simplexml_import_dom($doc);
 
-        $subPatternFeedbackOperatorIf = '[name(./*[1]) = "responseIf" ] [count(./responseIf/*) = 2 ] '
-            . '[contains(name(./responseIf/*[1]/*[1]), "map")] [name(./responseIf/*[1]/*[2]) = "baseValue" ] '
-            . '[name(./responseIf/*[2]) = "setOutcomeValue" ] [name(./responseIf/setOutcomeValue/*[1]) = "baseValue" ]';
-        $subPatternFeedbackElse = '[name(./*[2]) = "responseElseIf"] [count(./responseElseIf/*) = 1 ] '
-            . '[name(./responseElseIf/*[1]) = "setOutcomeValue"] '
-            . '[name(./responseElseIf/setOutcomeValue/*[1]) = "baseValue"]';
+        $subPatternFeedbackOperatorIf = '[name(./*[1]) = "responseIf" ] [count(./responseIf/*) = 2 ] [contains(name(./responseIf/*[1]/*[1]), "map")] [name(./responseIf/*[1]/*[2]) = "baseValue" ] [name(./responseIf/*[2]) = "setOutcomeValue" ] [name(./responseIf/setOutcomeValue/*[1]) = "baseValue" ]';
+        $subPatternFeedbackElse = '[name(./*[2]) = "responseElseIf"] [count(./responseElseIf/*) = 1 ] [name(./responseElseIf/*[1]) = "setOutcomeValue"] [name(./responseElseIf/setOutcomeValue/*[1]) = "baseValue"]';
         $patternFeedbackOperator = '/responseCondition [count(./*) = 1 ]' . $subPatternFeedbackOperatorIf;
-        $patternFeedbackOperatorWithElse = '/responseCondition [count(./*) = 2 ]' . $subPatternFeedbackOperatorIf
-            . $subPatternFeedbackElse;
+        $patternFeedbackOperatorWithElse = '/responseCondition [count(./*) = 2 ]' . $subPatternFeedbackOperatorIf . $subPatternFeedbackElse;
         $match = $data->xpath($patternFeedbackOperatorWithElse);
 
         $operator = '';
@@ -162,10 +155,7 @@ class QtiModelTest extends TaoPhpUnitTestRunner
         $doc->loadXML($output3);
 
         $data = simplexml_import_dom($doc);
-        $patternFeedbackCorrect = '/responseCondition [count(./*) = 1 ] [name(./*[1]) = "responseIf" ] '
-            . '[count(./responseIf/*) = 2 ] [name(./responseIf/*[1]) = "match" ] '
-            . '[name(./responseIf/*[1]/*[1]) = "variable" ] [name(./responseIf/*[1]/*[2]) = "correct" ] '
-            . '[name(./responseIf/*[2]) = "setOutcomeValue" ] [name(./responseIf/setOutcomeValue/*[1]) = "baseValue" ]';
+        $patternFeedbackCorrect = '/responseCondition [count(./*) = 1 ] [name(./*[1]) = "responseIf" ] [count(./responseIf/*) = 2 ] [name(./responseIf/*[1]) = "match" ] [name(./responseIf/*[1]/*[1]) = "variable" ] [name(./responseIf/*[1]/*[2]) = "correct" ] [name(./responseIf/*[2]) = "setOutcomeValue" ] [name(./responseIf/setOutcomeValue/*[1]) = "baseValue" ]';
         $match = $data->xpath($patternFeedbackCorrect);
 
         $responseIdentifier = (string) $data->responseIf->match->variable['identifier'];
@@ -196,8 +186,6 @@ class QtiModelTest extends TaoPhpUnitTestRunner
 
     /**
      * test the building of item from all the samples
-     *
-     * phpcs:disable PSR2.Methods.MethodDeclaration
      */
     public function _testSamples()
     {
@@ -228,5 +216,4 @@ class QtiModelTest extends TaoPhpUnitTestRunner
             }
         }
     }
-    // phpcs:enable PSR2.Methods.MethodDeclaration
 }

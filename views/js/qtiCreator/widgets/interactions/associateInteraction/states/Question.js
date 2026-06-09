@@ -23,18 +23,8 @@ define([
     'taoQtiItem/qtiCreator/widgets/helpers/formElement',
     'taoQtiItem/qtiCreator/widgets/component/minMax/minMax',
     'tpl!taoQtiItem/qtiCreator/tpl/forms/interactions/associate',
-    'taoQtiItem/qtiCommonRenderer/helpers/sizeAdapter',
-    'services/features'
-], function (
-    _, 
-    stateFactory, 
-    Question, 
-    formElement, 
-    minMaxComponentFactory, 
-    formTpl, 
-    sizeAdapter, 
-    features
-) {
+    'taoQtiItem/qtiCommonRenderer/helpers/sizeAdapter'
+], function(_, stateFactory, Question, formElement, minMaxComponentFactory, formTpl, sizeAdapter){
     'use strict';
 
     var AssociateInteractionStateQuestion = stateFactory.extend(Question);
@@ -46,10 +36,7 @@ define([
        var interaction = this.widget.element;
 
         $form.html(formTpl({
-            shuffle : !!interaction.attr('shuffle'),
-            enabledFeatures: {
-                shuffleChoices: features.isVisible('taoQtiItem/creator/interaction/associate/property/shuffle')
-            }
+            shuffle : !!interaction.attr('shuffle')
         }));
 
         minMaxComponentFactory($form.find('.min-max-panel'), {

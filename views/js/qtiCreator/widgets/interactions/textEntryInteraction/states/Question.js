@@ -22,9 +22,8 @@ define([
     'taoQtiItem/qtiCreator/widgets/interactions/states/Question',
     'taoQtiItem/qtiCreator/widgets/helpers/formElement',
     'taoQtiItem/qtiCommonRenderer/helpers/patternMask',
-    'tpl!taoQtiItem/qtiCreator/tpl/forms/interactions/textEntry',
-    'services/features'
-], function($, __, stateFactory, Question, formElement, patternMaskHelper, formTpl, features){
+    'tpl!taoQtiItem/qtiCreator/tpl/forms/interactions/textEntry'
+], function($, __, stateFactory, Question, formElement, patternMaskHelper, formTpl){
     'use strict';
 
     var TextEntryInteractionStateQuestion = stateFactory.extend(Question);
@@ -44,10 +43,6 @@ define([
             pattern : {label : __("Pattern"), selected : false}
         };
 
-        const baseAvailable = features.isVisible('taoQtiItem/creator/interaction/textEntry/property/base');
-        const constraintsAvailable = features.isVisible('taoQtiItem/creator/interaction/textEntry/property/constraints');
-        const recommendationsAvailable = features.isVisible('taoQtiItem/creator/interaction/textEntry/property/recommendations');
-
         if (!isNaN(maxChars) && maxChars > 0) {
             constraints.none.selected = false;
             constraints.maxLength.selected = true;
@@ -58,12 +53,9 @@ define([
 
         $form.html(formTpl({
             base : parseInt(interaction.attr('base')),
-            baseAvailable,
             placeholderText : interaction.attr('placeholderText'),
             expectedLength : parseInt(interaction.attr('expectedLength')),
-            constraints,
-            constraintsAvailable,
-            recommendationsAvailable,
+            constraints : constraints,
             patternMask : patternMask,
             maxLength : maxChars,
         }));

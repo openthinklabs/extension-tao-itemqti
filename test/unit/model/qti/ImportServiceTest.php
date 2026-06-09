@@ -20,95 +20,74 @@
  * @author Julien Sébire, <julien@taotesting.com>
  */
 
-namespace oat\taoQtiItem\test\unit\model\qti;
+namespace oat\taoQtiItem\test\unit\model;
 
-use oat\generis\model\data\Ontology;
-use oat\generis\test\ServiceManagerMockTrait;
-use PHPUnit\Framework\TestCase;
 use core_kernel_classes_Class as RdfClass;
-use core_kernel_classes_Resource as RdfResource;
+use oat\generis\test\TestCase;
 use oat\tao\model\TaoOntology;
 use oat\taoQtiItem\model\qti\ImportService;
 
 class ImportServiceTest extends TestCase
 {
-    use ServiceManagerMockTrait;
-
-    private const ITEM_LABEL = 'item label';
-
-    private ImportService $subject;
-    private Ontology $ontologyMock;
-    private RdfResource $itemResourceMock;
-
-    public function setUp(): void
+    /**
+     * @return array
+     */
+    public function testRetrieveFullPathLabelsWithNonClassResourceReturnsEmptyString()
     {
-        $this->subject = new ImportService();
-        $this->ontologyMock = $this->createMock(Ontology::class);
-
-        $this->subject->setServiceManager(
-            $this->getServiceManagerMock(
-                [
-                    Ontology::SERVICE_ID => $this->ontologyMock,
-                ]
-            )
-        );
-
-        $this->itemResourceMock = $this->createMock(RdfResource::class);
-        $this->itemResourceMock->expects($this->once())
-            ->method('getLabel')
-            ->willReturn(self::ITEM_LABEL);
+        $subject = new ImportService();
+        $this->assertEquals('', $subject->retrieveFullPathLabels('whatever'));
     }
 
-    public function testGetTargetClassForAssetsReturnsRoot()
+    /**
+     * @return array
+     */
+    public function testRetrieveFullPathLabelsWithRootClassResourceReturnsEmptyArray()
     {
-        $itemClassMock = $this->createMock(RdfClass::class);
-        $itemClassMock->expects($this->once())
-            ->method('getUri')
-            ->willReturn(TaoOntology::CLASS_URI_ITEM);
+        $class = $this->getMockBuilder(RdfClass::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['getUri'])
+            ->getMock();
+        $class->method('getUri')->willReturn(TaoOntology::CLASS_URI_ITEM);
 
-        $result = [self::ITEM_LABEL];
-
-        $this->assertEquals($result, $this->subject->getTargetClassForAssets($itemClassMock, $this->itemResourceMock));
+        $subject = new ImportService();
+        $this->assertEquals([], $subject->retrieveFullPathLabels($class));
     }
 
-    public function testGetTargetClassForAssetsReturnsExistingMediaClasses()
-    {
-        $label1 = 'First subclass label';
-        $label2 = 'Second subclass label';
-
-        $itemClass = $this->prepareItemClassStructureMock($label1, $label2);
-
-        $result = [$label1, $label2, self::ITEM_LABEL];
-
-        $this->assertEquals($result, $this->subject->getTargetClassForAssets($itemClass, $this->itemResourceMock));
-    }
-
-    private function prepareItemClassStructureMock($label1, $label2): RdfClass
+    /**
+     * @return array
+     */
+    public function testRetrieveFullPathLabelsWithSeveralClassResourcesReturnsArray()
     {
         $rootUri = TaoOntology::CLASS_URI_ITEM;
-        $uri1 = 'https://example.com/uri2';
-        $uri2 = 'https://example.com/uri3';
+        $uri1 = 'http://example.com/uri2';
+        $uri2 = 'http://example.com/uri3';
 
-        $rootClass = $this->createMock(RdfClass::class);
-        $rootClass->expects($this->once())
-            ->method('getUri')->willReturn($rootUri);
+        $label1 = 'First subbclass label';
+        $label2 = 'second subbclass label';
 
-        $subclass1 =  $this->createMock(RdfClass::class);
-        $subclass1->expects($this->once())
-            ->method('getUri')->willReturn($uri1);
-        $subclass1->expects($this->once())
-            ->method('getLabel')->willReturn($label1);
-        $subclass1->expects($this->once())
-            ->method('getParentClasses')->willReturn([$rootUri => $rootClass]);
+        $rootClass = $this->getMockBuilder(RdfClass::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['getUri'])
+            ->getMock();
+        $rootClass->method('getUri')->willReturn($rootUri);
 
-        $subclass2 = $this->createMock(RdfClass::class);
-        $subclass2->expects($this->once())
-            ->method('getUri')->willReturn($uri2);
-        $subclass2->expects($this->once())
-            ->method('getLabel')->willReturn($label2);
-        $subclass2->expects($this->once())
-            ->method('getParentClasses')->willReturn([$uri1 => $subclass1]);
+        $subclass1 = $this->getMockBuilder(RdfClass::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['getUri', 'getLabel', 'getParentClasses'])
+            ->getMock();
+        $subclass1->method('getUri')->willReturn($uri1);
+        $subclass1->method('getLabel')->willReturn($label1);
+        $subclass1->method('getParentClasses')->willReturn([$rootUri => $rootClass]);
 
-        return $subclass2;
+        $subclass2 = $this->getMockBuilder(RdfClass::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['getUri', 'getLabel', 'getParentClasses'])
+            ->getMock();
+        $subclass2->method('getUri')->willReturn($uri2);
+        $subclass2->method('getLabel')->willReturn($label2);
+        $subclass2->method('getParentClasses')->willReturn([$uri1 => $subclass1]);
+
+        $subject = new ImportService();
+        $this->assertEquals([$label1, $label2], $subject->retrieveFullPathLabels($subclass2));
     }
 }

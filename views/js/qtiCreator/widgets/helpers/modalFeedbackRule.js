@@ -172,7 +172,7 @@ define([
 
             if(feedbackRules && _.size(feedbackRules)){
                 $feedbackRules.empty();
-                _.forEach(feedbackRules, function(feedbackRule){
+                _.each(feedbackRules, function(feedbackRule){
                     $feedbackRules.append(_renderFeedbackRule(feedbackRule));
                 });
             }

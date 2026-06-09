@@ -34,6 +34,7 @@ use ReflectionException;
 
 class QtiJsonItemCompilerTest extends TestCase
 {
+
     /**
      * @return array
      */

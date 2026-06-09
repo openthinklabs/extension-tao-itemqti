@@ -19,24 +19,31 @@
 
 define([
     'jquery',
-    'taoQtiItem/qtiCreator/widgets/states/factory',
-    'taoQtiItem/qtiCreator/widgets/interactions/states/Sleep',
-    'taoQtiItem/qtiCreator/widgets/interactions/helpers/responsiveMetaChange'
-], function ($, stateFactory, SleepState, responsiveMetaChange) {
+    'taoQtiItem/qtiCreator/widgets/states/factory', 
+    'taoQtiItem/qtiCreator/widgets/interactions/states/Sleep'
+], function($, stateFactory, SleepState){
 
     'use strict';
 
-    var initSleepState = function initSleepState() {
-        const widget = this.widget;
-        widget.on('metaChange', data => {
-            responsiveMetaChange(data, widget);
+    var initSleepState = function initSleepState(){
+        var widget      = this.widget;
+        var interaction = widget.element;
+        widget.on('metaChange', function(data){
+            if(data.key === 'responsive'){
+                if(data.value === true){
+                    interaction.addClass('responsive');
+                } else {
+                    interaction.removeClass('responsive');
+                }
+                widget.rebuild();
+            }
         });
     };
 
 
-    var exitSleepState = function exitSleepState() {
+    var exitSleepState = function exitSleepState(){
         $('.image-editor.solid, .block-listing.source', this.widget.$container).css('min-width', 0);
     };
-
-    return stateFactory.extend(SleepState, initSleepState, exitSleepState);
+ 
+    return stateFactory.extend(SleepState, initSleepState, exitSleepState); 
 });

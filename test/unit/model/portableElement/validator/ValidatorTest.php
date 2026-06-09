@@ -45,10 +45,7 @@ class ValidatorTest extends TestCase
         $portableElementObject = new DummyPortableElementObject();
 
         $validatable = $this->createMock(Validatable::class);
-        $validatable
-            ->expects($this->any())
-            ->method('getConstraints')
-            ->willReturn(['property' => [Validator::isString]]);
+        $validatable->expects($this->any())->method('getConstraints')->willReturn(['property' => [Validator::isString]]);
 
         $this->expectException(PortableElementInvalidModelException::class);
         $this->subject->validate($portableElementObject, $validatable);
@@ -60,10 +57,7 @@ class ValidatorTest extends TestCase
         $portableElementObject->setProperty('string');
 
         $validatable = $this->createMock(Validatable::class);
-        $validatable
-            ->expects($this->any())
-            ->method('getConstraints')
-            ->willReturn(['property' => [Validator::isString]]);
+        $validatable->expects($this->any())->method('getConstraints')->willReturn(['property' => [Validator::isString]]);
 
         $this->assertTrue($this->subject->validate($portableElementObject, $validatable));
     }

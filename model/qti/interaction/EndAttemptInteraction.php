@@ -36,6 +36,7 @@ use oat\taoQtiItem\model\qti\interaction\InlineInteraction;
  */
 class EndAttemptInteraction extends InlineInteraction
 {
+
     /**
      * the QTI tag name as defined in QTI standard
      *
@@ -45,7 +46,7 @@ class EndAttemptInteraction extends InlineInteraction
     protected static $qtiTagName = 'endAttemptInteraction';
     protected static $choiceClass = '';
     protected static $baseType = 'boolean';
-
+    
     protected function getUsedAttributes()
     {
         return array_merge(

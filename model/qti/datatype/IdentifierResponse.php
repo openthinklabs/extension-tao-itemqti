@@ -35,6 +35,7 @@ use oat\taoQtiItem\model\qti\datatype\Identifier;
  */
 class IdentifierResponse extends Identifier
 {
+    
     /**
      * Define the array of authorized QTI element classes
      *

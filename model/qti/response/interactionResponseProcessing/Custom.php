@@ -19,7 +19,6 @@
  *
  *
  */
-
 namespace oat\taoQtiItem\model\qti\response\interactionResponseProcessing;
 
 use oat\taoQtiItem\model\qti\response\interactionResponseProcessing\Custom;
@@ -46,7 +45,7 @@ class Custom extends InteractionResponseProcessing
      * @access public
      * @var string
      */
-    public const CLASS_ID = 'custom';
+    const CLASS_ID = 'custom';
 
     // --- OPERATIONS ---
 
@@ -61,8 +60,8 @@ class Custom extends InteractionResponseProcessing
     {
         $returnValue = (string) '';
 
-
-
+        
+        
 
         return (string) $returnValue;
     }
@@ -78,8 +77,8 @@ class Custom extends InteractionResponseProcessing
     {
         $returnValue = (string) '';
 
-
-
+        
+        
 
         return (string) $returnValue;
     }

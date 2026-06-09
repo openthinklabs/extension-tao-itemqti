@@ -120,9 +120,7 @@ class StimulusHandler implements AssetHandler
         $images = $dom->getElementsByTagName('img');
 
         for ($i = 0; $i < $images->length; $i++) {
-            $imageFile = dirname($absolutePath) . DIRECTORY_SEPARATOR
-                . ltrim($images->item($i)->getAttribute('src'), DIRECTORY_SEPARATOR);
-
+            $imageFile = dirname($absolutePath) . DIRECTORY_SEPARATOR . ltrim($images->item($i)->getAttribute('src'), DIRECTORY_SEPARATOR);
             if (is_readable($imageFile)) {
                 $encodedSrc = 'data:image/png;base64,' . base64_encode(file_get_contents($imageFile));
                 $images->item($i)->setAttribute('src', $encodedSrc);

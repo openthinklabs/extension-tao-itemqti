@@ -19,7 +19,6 @@
  *
  *
  */
-
 namespace oat\taoQtiItem\model\qti\response\interactionResponseProcessing;
 
 use oat\taoQtiItem\model\qti\response\interactionResponseProcessing\MapResponsePointTemplate;
@@ -46,7 +45,7 @@ class MapResponsePointTemplate extends Template
      * @access public
      * @var string
      */
-    public const CLASS_ID = 'mappoint';
+    const CLASS_ID = 'mappoint';
 
     // --- OPERATIONS ---
 
@@ -61,13 +60,12 @@ class MapResponsePointTemplate extends Template
     {
         $returnValue = (string) '';
 
-
-        $returnValue = 'if(isNull(null, getResponse("' . $this->getResponse()->getIdentifier() . '"))) { '
-            . 'setOutcomeValue("' . $this->getOutcome()->getIdentifier() . '", 0); } else { ' . 'setOutcomeValue("'
-            . $this->getOutcome()->getIdentifier() . '", ' . 'mapResponsePoint(null, getMap("'
-            . $this->getResponse()->getIdentifier() . '", "area"), getResponse("'
-            . $this->getResponse()->getIdentifier() . '"))); };';
-
+        
+        $returnValue = 'if(isNull(null, getResponse("' . $this->getResponse()->getIdentifier() . '"))) { ' .
+            'setOutcomeValue("' . $this->getOutcome()->getIdentifier() . '", 0); } else { ' .
+            'setOutcomeValue("' . $this->getOutcome()->getIdentifier() . '", ' .
+                'mapResponsePoint(null, getMap("' . $this->getResponse()->getIdentifier() . '", "area"), getResponse("' . $this->getResponse()->getIdentifier() . '"))); };';
+        
 
         return (string) $returnValue;
     }
@@ -83,7 +81,7 @@ class MapResponsePointTemplate extends Template
     {
         $returnValue = (string) '';
 
-
+        
         $returnValue = '<responseCondition>
 		    <responseIf>
 		        <not>
@@ -96,7 +94,7 @@ class MapResponsePointTemplate extends Template
 		        </setOutcomeValue>
 		    </responseIf>
 		</responseCondition>';
-
+        
 
         return (string) $returnValue;
     }

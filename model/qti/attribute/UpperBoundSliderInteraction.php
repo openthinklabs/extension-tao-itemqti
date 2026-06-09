@@ -35,6 +35,7 @@ use oat\taoQtiItem\model\qti\attribute\Attribute;
  */
 class UpperBoundSliderInteraction extends Attribute
 {
+    
     protected static $name = 'upperBound';
     protected static $type = 'oat\\taoQtiItem\\model\\qti\\datatype\\QtiFloat';
     protected static $defaultValue = null;

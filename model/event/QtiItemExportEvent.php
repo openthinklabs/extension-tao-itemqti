@@ -25,4 +25,5 @@ use oat\tao\model\event\AbstractExportEvent;
 
 class QtiItemExportEvent extends AbstractExportEvent
 {
+
 }

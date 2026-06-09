@@ -21,7 +21,6 @@ define([
     'taoQtiItem/qtiCreator/widgets/interactions/blockInteraction/states/states',
     'taoQtiItem/qtiCreator/widgets/interactions/matchInteraction/states/Question',
     'taoQtiItem/qtiCreator/widgets/interactions/matchInteraction/states/Correct',
-    'taoQtiItem/qtiCreator/widgets/interactions/matchInteraction/states/Custom',
     'taoQtiItem/qtiCreator/widgets/interactions/matchInteraction/states/Map'
 ], function(factory, states){
     'use strict';

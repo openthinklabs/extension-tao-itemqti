@@ -35,6 +35,7 @@ use oat\taoQtiItem\model\qti\attribute\Attribute;
  */
 class Index extends Attribute
 {
+    
     protected static $name = 'index';
     protected static $type = 'oat\\taoQtiItem\\model\\qti\\datatype\\IntegerOrVariableRef';
     protected static $defaultValue = null;

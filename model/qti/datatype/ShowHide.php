@@ -35,6 +35,7 @@ use oat\taoQtiItem\model\qti\datatype\Enumeration;
  */
 class ShowHide extends Enumeration
 {
+    
     public static function getEnumeration()
     {
         return [

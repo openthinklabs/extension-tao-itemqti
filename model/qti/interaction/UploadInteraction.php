@@ -36,6 +36,7 @@ use oat\taoQtiItem\model\qti\interaction\BlockInteraction;
  */
 class UploadInteraction extends BlockInteraction
 {
+
     /**
      * the QTI tag name as defined in QTI standard
      *
@@ -45,7 +46,7 @@ class UploadInteraction extends BlockInteraction
     protected static $qtiTagName = 'uploadInteraction';
     protected static $choiceClass = '';
     protected static $baseType = 'file';
-
+    
     protected function getUsedAttributes()
     {
         return array_merge(

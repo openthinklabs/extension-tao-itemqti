@@ -27,17 +27,17 @@ use oat\taoQtiItem\model\pack\QtiAssetPacker\PackedAsset;
 
 interface QtiItemAssetReplacer
 {
-    public const SERVICE_ID = 'taoQtiItem/ItemAssetReplacer';
+    const SERVICE_ID = 'taoQtiItem/ItemAssetReplacer';
 
     /**
      * This option can be used for replacement default patterns
      */
-    public const OPTION_EXCLUDE_PATTERNS = 'exclude_patterns';
+    const OPTION_EXCLUDE_PATTERNS = 'exclude_patterns';
 
     /**
      * Default patterns for excluding
      */
-    public const DEFAULT_EXCLUDE_PATTERNS = [
+    const DEFAULT_EXCLUDE_PATTERNS = [
         '/\.css/',
         '/\.js/',
         '/textReaderInteraction/',

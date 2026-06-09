@@ -40,6 +40,7 @@ use tao_helpers_Xml;
  */
 class AssetParser
 {
+
     /**
      * The item to parse
      * @var Item
@@ -276,8 +277,7 @@ class AssetParser
 
     /**
      * Search assets URI in custom element properties
-     * The PCI standard will be extended in the future with typed property value
-     * (boolean, integer, float, string, uri, html etc.)
+     * The PCI standard will be extended in the future with typed property value (boolean, integer, float, string, uri, html etc.)
      * Meanwhile, we use the special property name uri for the special type "URI" that represents a file URI.
      * Portable element using this reserved property should be migrated later on when the standard is updated.
      *
@@ -486,4 +486,5 @@ class AssetParser
             ->getContainer()
             ->get(CustomInteractionAssetExtractorAllocator::class);
     }
+
 }

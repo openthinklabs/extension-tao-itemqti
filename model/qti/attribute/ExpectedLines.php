@@ -35,6 +35,7 @@ use oat\taoQtiItem\model\qti\attribute\Attribute;
  */
 class ExpectedLines extends Attribute
 {
+    
     protected static $name = 'expectedLines';
     protected static $type = 'oat\\taoQtiItem\\model\\qti\\datatype\\QtiInteger';
     protected static $defaultValue = null;

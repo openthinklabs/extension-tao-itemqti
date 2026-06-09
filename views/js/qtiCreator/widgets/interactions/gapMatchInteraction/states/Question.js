@@ -30,8 +30,7 @@ define([
     'taoQtiItem/qtiCreator/model/choices/GapText',
     'tpl!taoQtiItem/qtiCreator/tpl/forms/interactions/gapMatch',
     'tpl!taoQtiItem/qtiCreator/tpl/toolbars/gap-create',
-    'tpl!taoQtiItem/qtiCreator/tpl/toolbars/htmlEditorTrigger',
-    'services/features'
+    'tpl!taoQtiItem/qtiCreator/tpl/toolbars/htmlEditorTrigger'
 ], function(
     $,
     _,
@@ -47,8 +46,7 @@ define([
     Choice,
     formTpl,
     newGapTpl,
-    toolbarTpl,
-    features
+    toolbarTpl
 ){
     'use strict';
 
@@ -97,9 +95,7 @@ define([
                 data : {
                     container : container,
                     widget : _widget
-                },
-                qtiInclude: false,
-                flushDeletingWidgetsOnDestroy: true
+                }
             });
 
             //restore gaps
@@ -278,10 +274,7 @@ define([
             interaction = _widget.element;
 
         $form.html(formTpl({
-            shuffle : !!interaction.attr('shuffle'),
-            enabledFeatures: {
-                shuffleChoices: features.isVisible('taoQtiItem/creator/interaction/gapMatch/property/shuffle')
-            }
+            shuffle : !!interaction.attr('shuffle')
         }));
 
         formElement.initWidget($form);
@@ -302,7 +295,7 @@ define([
             var choiceCount = 0,
                 $deleteButtons = $container.find('.choice-area .qti-choice [data-role=delete]');
 
-            _.forEach(interaction.getChoices(), function(choice){
+            _.each(interaction.getChoices(), function(choice){
                 if(!choice.data('deleting')){
                     choiceCount++;
                 }

@@ -30,6 +30,7 @@ use oat\taoQtiItem\model\qti\container\FlowContainer;
 
 class Tooltip extends Element implements FlowContainer
 {
+
     protected static $qtiTagName = '_tooltip';
     protected $content = '';
     protected $body = null;
@@ -72,8 +73,7 @@ class Tooltip extends Element implements FlowContainer
      */
     protected function getTemplateQtiVariables()
     {
-        // this is necessary because the QTI template gets a serialized string for attributes and cannot address a
-        // specific attribute
+        // this is necessary because the QTI template gets a serialized string for attributes and cannot address a specific attribute
         $tooltipId = $this->getAttributeValue('aria-describedby');
 
         $variables = parent::getTemplateQtiVariables();

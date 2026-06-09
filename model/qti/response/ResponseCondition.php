@@ -19,7 +19,6 @@
  *
  *
  */
-
 namespace oat\taoQtiItem\model\qti\response;
 
 use oat\taoQtiItem\model\qti\response\ResponseCondition;
@@ -38,6 +37,9 @@ use oat\taoQtiItem\model\qti\response\ConditionalExpression;
  */
 class ResponseCondition extends ResponseRule implements Rule
 {
+    // --- ASSOCIATIONS ---
+    // generateAssociationEnd :     // generateAssociationEnd :     // generateAssociationEnd : 0    // generateAssociationEnd :
+
     // --- ATTRIBUTES ---
 
     /**
@@ -69,13 +71,13 @@ class ResponseCondition extends ResponseRule implements Rule
     {
         $returnValue = (string) '';
 
-
-
+        
+        
         // Get the if / elseif conditions and the associated actions
         foreach ($this->responseIfs as $responseElseIf) {
             $returnValue .= (empty($returnValue) ? '' : ' else ') . $responseElseIf->getRule();
         }
-
+        
         // Get the else actions
         if (!empty($this->responseElse)) {
             $returnValue .= 'else {';
@@ -84,8 +86,8 @@ class ResponseCondition extends ResponseRule implements Rule
             }
             $returnValue .= '}';
         }
-
-
+        
+        
 
         return (string) $returnValue;
     }
@@ -101,7 +103,7 @@ class ResponseCondition extends ResponseRule implements Rule
      */
     public function addResponseIf(Expression $condition, $actions)
     {
-
+        
         $this->responseIfs[] = new ConditionalExpression($condition, $actions);
     }
 
@@ -115,7 +117,7 @@ class ResponseCondition extends ResponseRule implements Rule
      */
     public function setResponseElse($actions)
     {
-
+        
         $this->responseElse = $actions;
     }
 }

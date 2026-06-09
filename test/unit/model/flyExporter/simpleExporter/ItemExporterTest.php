@@ -8,7 +8,6 @@ use oat\taoQtiItem\model\Export\QTIPackedItem22Exporter;
 use oat\taoQtiItem\model\Export\QTIPackedItemExporter;
 use oat\taoQtiItem\model\flyExporter\simpleExporter\ItemExporter;
 use ZipArchive;
-
 use function Webmozart\Assert\Tests\StaticAnalysis\true;
 
 class ItemExporterTest extends TestCase
@@ -58,15 +57,11 @@ class ItemExporterTest extends TestCase
         $expectedOutputV21 = file_get_contents(dirname(__FILE__) . '/../../../samples/export/exported_item_2_1.xml');
         $expectedOutputV22 = file_get_contents(dirname(__FILE__) . '/../../../samples/export/exported_item_2_2.xml');
 
-        $coreKernelClassStub = $this->createMock(core_kernel_classes_Resource::class);
-
-        //Need to remove all methods because of PHPUnit 8.5 doesn`t handles return union types used in PHP8
-        $zipArchiveStub = $this->getMockBuilder(ZipArchive::class)
-            ->onlyMethods([])
-            ->getMock();
+        $coreKernelClassStub = $this->createStub(core_kernel_classes_Resource::class);
+        $zipArchiveStub = $this->createStub(ZipArchive::class);
 
         // To be able to test protected method
-        $exporterV21 = new class ($coreKernelClassStub, $zipArchiveStub) extends QTIPackedItemExporter {
+        $exporterV21 = new class($coreKernelClassStub, $zipArchiveStub) extends QTIPackedItemExporter {
             public function setCorrectQTIVersion(string $itemQTI): string
             {
                 return parent::setCorrectQTIVersion($itemQTI);
@@ -74,9 +69,9 @@ class ItemExporterTest extends TestCase
         };
 
         $outputV21 = $exporterV21->setCorrectQTIVersion($input);
-        self::assertEquals($expectedOutputV21, $outputV21);
+        $this->assertEquals($expectedOutputV21, $outputV21);
 
-        $exporterV22 = new class ($coreKernelClassStub, $zipArchiveStub) extends QTIPackedItem22Exporter {
+        $exporterV22 = new class($coreKernelClassStub, $zipArchiveStub) extends QTIPackedItem22Exporter {
             public function setCorrectQTIVersion(string $itemQTI): string
             {
                 return parent::setCorrectQTIVersion($itemQTI);
@@ -84,6 +79,6 @@ class ItemExporterTest extends TestCase
         };
 
         $outputV22 = $exporterV22->setCorrectQTIVersion($input);
-        self::assertEquals($expectedOutputV22, $outputV22);
+        $this->assertEquals($expectedOutputV22, $outputV22);
     }
 }

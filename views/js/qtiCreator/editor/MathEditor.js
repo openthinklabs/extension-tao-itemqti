@@ -50,7 +50,7 @@ define([
             callback : null
         };
 
-        _.forEach(args, function(arg){
+        _.each(args, function(arg){
             if(_.isFunction(arg)){
                 ret.callback = arg;
             }else if(arg instanceof $){

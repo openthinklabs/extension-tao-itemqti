@@ -209,15 +209,7 @@ define([
                 }
             };
 
-            const isCustomResponseProcessing =
-              interaction.rootElement.responseProcessing &&
-              interaction.rootElement.responseProcessing.processingType ===
-                "custom";
-            const answerState = isCustomResponseProcessing
-              ? true
-              : answerStateHelper.defineCorrect(response);
-
-            _toggleCorrectInputs(answerState);
+            _toggleCorrectInputs(answerStateHelper.defineCorrect(response));
 
             widget.on('metaChange', function(data){
                 if(data.element.serial === response.serial && data.key === 'defineCorrect'){

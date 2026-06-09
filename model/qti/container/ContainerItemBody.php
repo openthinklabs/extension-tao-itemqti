@@ -15,22 +15,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2013-2022 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
+ * Copyright (c) 2013 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
+ *
+ *
  */
 
 namespace oat\taoQtiItem\model\qti\container;
 
-use oat\taoQtiItem\model\qti\feedback\Feedback;
-use oat\taoQtiItem\model\qti\Figure;
-use oat\taoQtiItem\model\qti\Img;
-use oat\taoQtiItem\model\qti\InfoControl;
-use oat\taoQtiItem\model\qti\interaction\Interaction;
-use oat\taoQtiItem\model\qti\Math;
-use oat\taoQtiItem\model\qti\QtiObject;
-use oat\taoQtiItem\model\qti\RubricBlock;
-use oat\taoQtiItem\model\qti\Table;
-use oat\taoQtiItem\model\qti\Tooltip;
-use oat\taoQtiItem\model\qti\XInclude;
+use oat\taoQtiItem\model\qti\container\ContainerInteractive;
 
 /**
  * The QTI ContainerItemBody represents the ItemBody or an assessmentItem
@@ -42,23 +34,27 @@ use oat\taoQtiItem\model\qti\XInclude;
  */
 class ContainerItemBody extends ContainerInteractive
 {
+
     /**
-     * @inheritDoc
+     * return the list of available element classes
+     *
+     * @access public
+     * @author Sam, <sam@taotesting.com>
+     * @return array
      */
-    public function getValidElementTypes(): array
+    public function getValidElementTypes()
     {
         return [
-            Feedback::class,
-            Figure::class,
-            Img::class,
-            InfoControl::class,
-            Interaction::class,
-            Math::class,
-            QtiObject::class,
-            RubricBlock::class,
-            Table::class,
-            Tooltip::class,
-            XInclude::class,
+            'oat\\taoQtiItem\\model\\qti\\Img',
+            'oat\\taoQtiItem\\model\\qti\\Table',
+            'oat\\taoQtiItem\\model\\qti\\Math',
+            'oat\\taoQtiItem\\model\\qti\\feedback\\Feedback',
+            \oat\taoQtiItem\model\qti\QtiObject::class,
+            'oat\\taoQtiItem\\model\\qti\\interaction\\Interaction',
+            'oat\\taoQtiItem\\model\\qti\\RubricBlock',
+            'oat\\taoQtiItem\\model\\qti\\InfoControl',
+            'oat\\taoQtiItem\\model\\qti\\Tooltip',
+            'oat\\taoQtiItem\\model\\qti\\XInclude'
         ];
     }
 

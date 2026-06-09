@@ -20,31 +20,23 @@
  */
 define([
     'lodash',
-    'services/features',
     'taoQtiItem/qtiCommonRenderer/renderers/Tooltip',
     'taoQtiItem/qtiCreator/widgets/static/tooltip/Widget',
-    'tpl!taoQtiItem/qtiCreator/tpl/tooltip',
-    'tpl!taoQtiItem/qtiCreator/tpl/notooltip'
-], function(_, features, Renderer, Widget, tooltipTpl, noTooltipTpl){
+    'tpl!taoQtiItem/qtiCreator/tpl/tooltip'
+], function(_, Renderer, Widget, tpl){
     'use strict';
 
     var CreatorTooltip = _.clone(Renderer);
-    const tooltipsVisible = features.isVisible('taoQtiItem/creator/content/plugin/taotooltip');
-    if(tooltipsVisible) {
-        CreatorTooltip.template = tooltipTpl;
-    }else{
-        CreatorTooltip.template = noTooltipTpl;
-    }
+
+    CreatorTooltip.template = tpl;
 
     CreatorTooltip.render = function(tooltip, options){
-        if(tooltipsVisible) {
-            Widget.build(
-                tooltip,
-                Renderer.getContainer(tooltip),
-                this.getOption('bodyElementOptionForm'),
-                options || {}
-            );
-        }
+        Widget.build(
+            tooltip,
+            Renderer.getContainer(tooltip),
+            this.getOption('bodyElementOptionForm'),
+            options || {}
+        );
     };
 
     return CreatorTooltip;

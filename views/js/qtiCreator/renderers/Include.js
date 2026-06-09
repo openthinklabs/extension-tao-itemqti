@@ -40,16 +40,12 @@ define([
         options.mediaManager = this.getOption('mediaManager');
         options.assetManager = this.getAssetManager();
 
-        let widget = Widget.build(
+        Widget.build(
             include,
             containerHelper.get(include),
             this.getOption('bodyElementOptionForm'),
             options
         );
-
-        if (widget && widget.$container) {
-            widget.$container.attr('contenteditable', 'false');
-        }
     };
 
     return CreatorXInclude;

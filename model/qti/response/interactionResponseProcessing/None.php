@@ -19,7 +19,6 @@
  *
  *
  */
-
 namespace oat\taoQtiItem\model\qti\response\interactionResponseProcessing;
 
 use oat\taoQtiItem\model\qti\response\interactionResponseProcessing\None;
@@ -46,7 +45,7 @@ class None extends InteractionResponseProcessing
      * @access public
      * @var string
      */
-    public const CLASS_ID = 'none';
+    const CLASS_ID = 'none';
 
     /**
      * Short description of attribute default
@@ -69,9 +68,9 @@ class None extends InteractionResponseProcessing
     {
         $returnValue = (string) '';
 
-
+        
         return $this->default;
-
+        
 
         return (string) $returnValue;
     }
@@ -86,7 +85,7 @@ class None extends InteractionResponseProcessing
      */
     public function setDefaultValue($value)
     {
-
+        
         $this->default = $value;
     }
 
@@ -101,10 +100,10 @@ class None extends InteractionResponseProcessing
     {
         $returnValue = (string) '';
 
-
+        
         $returnValue = 'if(isNull(null, getResponse("' . $this->getResponse()->getIdentifier() . '"))) { ' .
             'setOutcomeValue("' . $this->getOutcome()->getIdentifier() . '", ' . $this->getDefaultValue() . '); };';
-
+        
 
         return (string) $returnValue;
     }
@@ -121,7 +120,7 @@ class None extends InteractionResponseProcessing
     {
         $returnValue = (string) '';
 
-
+        
         $returnValue = '<responseCondition>
 		    <responseIf>
 	            <isNull>
@@ -132,7 +131,7 @@ class None extends InteractionResponseProcessing
 		        </setOutcomeValue>
 		    </responseIf>
 		</responseCondition>';
-
+        
 
         return (string) $returnValue;
     }

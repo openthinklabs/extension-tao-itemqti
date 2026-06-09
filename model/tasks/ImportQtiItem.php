@@ -36,14 +36,13 @@ use Zend\ServiceManager\ServiceLocatorInterface;
  */
 class ImportQtiItem extends AbstractTaskAction implements \JsonSerializable
 {
-    public const FILE_DIR = 'ImportQtiItemTask';
-    public const PARAM_CLASS_URI = 'class_uri';
-    public const PARAM_FILE = 'file';
-    public const PARAM_GUARDIANS = 'enableMetadataGuardians';
-    public const PARAM_VALIDATORS = 'enableMetadataValidators';
-    public const PARAM_ITEM_MUST_EXIST = 'itemMustExist';
-    public const PARAM_ITEM_MUST_BE_OVERWRITTEN = 'itemMustBeOverwritten';
-    public const PARAM_ITEM_METADATA = 'importMetadata';
+    const FILE_DIR = 'ImportQtiItemTask';
+    const PARAM_CLASS_URI = 'class_uri';
+    const PARAM_FILE = 'file';
+    const PARAM_GUARDIANS = 'enableMetadataGuardians';
+    const PARAM_VALIDATORS = 'enableMetadataValidators';
+    const PARAM_ITEM_MUST_EXIST = 'itemMustExist';
+    const PARAM_ITEM_MUST_BE_OVERWRITTEN = 'itemMustBeOverwritten';
 
     protected $service;
 
@@ -55,9 +54,7 @@ class ImportQtiItem extends AbstractTaskAction implements \JsonSerializable
     public function __invoke($params)
     {
         if (!isset($params[self::PARAM_FILE])) {
-            throw new \common_exception_MissingParameter(
-                'Missing parameter `' . self::PARAM_FILE . '` in ' . self::class
-            );
+            throw new \common_exception_MissingParameter('Missing parameter `' . self::PARAM_FILE . '` in ' . self::class);
         }
 
         $file = $this->getFileReferenceSerializer()->unserializeFile($params['file']);
@@ -72,8 +69,7 @@ class ImportQtiItem extends AbstractTaskAction implements \JsonSerializable
             (isset($params[self::PARAM_GUARDIANS])) ? $params[self::PARAM_GUARDIANS] : true,
             (isset($params[self::PARAM_VALIDATORS])) ? $params[self::PARAM_VALIDATORS] : true,
             (isset($params[self::PARAM_ITEM_MUST_EXIST])) ? $params[self::PARAM_ITEM_MUST_EXIST] : false,
-            $params[self::PARAM_ITEM_MUST_BE_OVERWRITTEN] ?? false,
-            $params[self::PARAM_ITEM_METADATA] ?? false
+            (isset($params[self::PARAM_ITEM_MUST_BE_OVERWRITTEN])) ? $params[self::PARAM_ITEM_MUST_BE_OVERWRITTEN] : false
         );
     }
 
@@ -97,16 +93,8 @@ class ImportQtiItem extends AbstractTaskAction implements \JsonSerializable
      * @param boolean                    $itemMustBeOverwritten
      * @return TaskInterface
      */
-    public static function createTask(
-        $packageFile,
-        \core_kernel_classes_Class $class,
-        ServiceLocatorInterface $serviceManager,
-        $enableMetadataGuardians = true,
-        $enableMetadataValidators = true,
-        $itemMustExist = false,
-        $itemMustBeOverwritten = false,
-        $itemMetadata = false
-    ) {
+    public static function createTask($packageFile, \core_kernel_classes_Class $class, ServiceLocatorInterface $serviceManager, $enableMetadataGuardians = true, $enableMetadataValidators = true, $itemMustExist = false, $itemMustBeOverwritten = false)
+    {
         $action = new self();
         $action->setServiceLocator($serviceManager);
 
@@ -123,8 +111,7 @@ class ImportQtiItem extends AbstractTaskAction implements \JsonSerializable
                 self::PARAM_GUARDIANS => $enableMetadataGuardians,
                 self::PARAM_VALIDATORS => $enableMetadataValidators,
                 self::PARAM_ITEM_MUST_EXIST => $itemMustExist,
-                self::PARAM_ITEM_MUST_BE_OVERWRITTEN => $itemMustBeOverwritten,
-                self::PARAM_ITEM_METADATA => $itemMetadata
+                self::PARAM_ITEM_MUST_BE_OVERWRITTEN => $itemMustBeOverwritten
             ],
             __('Import QTI ITEM into "%s"', $class->getLabel())
         );

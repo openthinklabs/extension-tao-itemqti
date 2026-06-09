@@ -73,7 +73,7 @@ define([
             levelData = {};
 
         //build select option data for the template
-        _.forEach(levels, function(lvl){
+        _.each(levels, function(lvl){
             levelData[lvl] = {
                 label : lvl,
                 selected : (lvl === level)

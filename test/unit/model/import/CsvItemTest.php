@@ -69,7 +69,8 @@ class CsvItemTest extends TestCase
         int $maxChoices,
         float $maxScore,
         string $isTrue
-    ): void {
+    ): void
+    {
         $subject = new CsvItem(
             'name',
             'question',

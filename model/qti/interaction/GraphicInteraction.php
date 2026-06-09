@@ -36,4 +36,5 @@ use oat\taoQtiItem\model\qti\interaction\ObjectInteraction;
  */
 abstract class GraphicInteraction extends ObjectInteraction
 {
+    
 }

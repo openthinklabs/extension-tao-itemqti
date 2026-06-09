@@ -28,6 +28,7 @@ namespace oat\taoQtiItem\model;
  */
 abstract class Config
 {
+
     protected $properties = [];
     protected $uiHooks = [];
 

@@ -35,12 +35,12 @@ abstract class AbstractMetadataService extends ConfigurableService
     /**
      * Config key to store injectors classes
      */
-    public const INJECTOR_KEY  = 'injectors';
+    const INJECTOR_KEY  = 'injectors';
 
     /**
      * Config key to store extractors classes
      */
-    public const EXTRACTOR_KEY = 'extractors';
+    const EXTRACTOR_KEY = 'extractors';
 
     /**
      * @var array Array of metadata, with metadata key with associated value
@@ -93,11 +93,7 @@ abstract class AbstractMetadataService extends ConfigurableService
             $values = $this->getMetadataValue($identifier);
 
             foreach ($this->getInjectors() as $injector) {
-                \common_Logger::i(
-                    // phpcs:disable Generic.Files.LineLength
-                    __('Attempting to inject "%s" metadata values for target "%s" with metadata Injector "%s".', count($values), $identifier, get_class($injector))
-                    // phpcs:enable Generic.Files.LineLength
-                );
+                \common_Logger::i(__('Attempting to inject "%s" metadata values for target "%s" with metadata Injector "%s".', count($values), $identifier, get_class($injector)));
                 $injector->inject($target, [$identifier => $values]);
             }
         }

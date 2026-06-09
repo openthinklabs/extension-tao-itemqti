@@ -33,6 +33,7 @@ use oat\taoQtiItem\model\qti\Element;
  */
 class QtiObject extends Element
 {
+
     /**
      * the QTI tag name as defined in QTI standard
      *

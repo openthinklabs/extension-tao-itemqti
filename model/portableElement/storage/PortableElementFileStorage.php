@@ -34,10 +34,10 @@ class PortableElementFileStorage extends ConfigurableService
 {
     use PortableElementModelTrait;
 
-    public const SERVICE_ID = 'taoQtiItem/portableElementFileStorage';
+    const SERVICE_ID = 'taoQtiItem/portableElementFileStorage';
 
-    public const OPTION_WEBSOURCE = 'websource';
-    public const OPTION_FILESYSTEM = 'filesystem';
+    const OPTION_WEBSOURCE = 'websource';
+    const OPTION_FILESYSTEM = 'filesystem';
 
     /**
      * @return Filesystem
@@ -57,9 +57,7 @@ class PortableElementFileStorage extends ConfigurableService
 
     public function getPrefix(PortableElementObject $object)
     {
-        $hashFile = DIRECTORY_SEPARATOR . md5($object->getTypeIdentifier() . $object->getVersion())
-            . DIRECTORY_SEPARATOR;
-
+        $hashFile = DIRECTORY_SEPARATOR . md5($object->getTypeIdentifier() . $object->getVersion()) . DIRECTORY_SEPARATOR;
         return $object->getModel()->getId() . $hashFile;
     }
 
@@ -104,11 +102,12 @@ class PortableElementFileStorage extends ConfigurableService
             }
 
             $fileId = $this->getPrefix($object) . $object->getRegistrationFileId($file);
-            $fileSystem->writeStream($fileId, $resource);
-            $registered = true;
-            if (is_resource($resource)) {
-                fclose($resource);
+            if ($fileSystem->has($fileId)) {
+                $registered = $fileSystem->updateStream($fileId, $resource);
+            } else {
+                $registered = $fileSystem->writeStream($fileId, $resource);
             }
+            fclose($resource);
             \common_Logger::i('Portable element asset file "' . $fileId . '" copied.');
         }
         return $registered;
@@ -124,15 +123,16 @@ class PortableElementFileStorage extends ConfigurableService
      */
     public function unregisterFiles(PortableElementObject $object, $files)
     {
+        $deleted = true;
         $filesystem = $this->getFileStorage();
         foreach ($files as $relPath) {
             $fileId = $this->getPrefix($object) . $relPath;
-            if (!$filesystem->fileExists($fileId)) {
+            if (!$filesystem->has($fileId)) {
                 throw new \common_Exception('File does not exists in the filesystem: ' . $relPath);
             }
-            $filesystem->delete($fileId);
+            $deleted = $filesystem->delete($fileId);
         }
-        return true;
+        return $deleted;
     }
 
     /**
@@ -142,13 +142,13 @@ class PortableElementFileStorage extends ConfigurableService
      */
     public function unregisterAllFiles(PortableElementObject $object)
     {
-        return $this->getFileStorage()->deleteDirectory($this->getPrefix($object));
+        return $this->getFileStorage()->deleteDir($this->getPrefix($object));
     }
 
     public function getFileContentFromModelStorage(PortableElementObject $object, $file)
     {
         $filePath = $this->getPrefix($object) . $file;
-        if ($this->getFileStorage()->fileExists($filePath)) {
+        if ($this->getFileStorage()->has($filePath)) {
             return $this->getFileStorage()->read($filePath);
         }
         throw new PortableElementFileStorageException('Unable to find file "' . $file . '"' .
@@ -164,7 +164,7 @@ class PortableElementFileStorage extends ConfigurableService
     public function getFileStream(PortableElementObject $object, $file)
     {
         $filePath = $this->getPrefix($object) . $file;
-        if ($this->getFileStorage()->fileExists($filePath)) {
+        if ($this->getFileStorage()->has($filePath)) {
             return new Stream($this->getFileStorage()->readStream($filePath));
         }
         throw new PortableElementFileStorageException($filePath);

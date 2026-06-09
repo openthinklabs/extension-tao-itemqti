@@ -35,11 +35,12 @@ use oat\taoQtiItem\model\qti\datatype\Datatype;
  */
 class Coords extends Datatype
 {
+    
     public static function validate($value)
     {
         return true;
     }
-
+    
     public static function fix($value)
     {
         return $value;

@@ -35,6 +35,7 @@ use oat\taoQtiItem\model\qti\choice\ContainerChoice;
  */
 class Hottext extends ContainerChoice
 {
+
     /**
      * the QTI tag name as defined in QTI standard
      *

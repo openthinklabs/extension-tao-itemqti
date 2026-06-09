@@ -22,6 +22,9 @@
 
 namespace oat\taoQtiItem\model\qti\datatype;
 
+use oat\taoQtiItem\model\qti\datatype\Length;
+use oat\taoQtiItem\model\qti\datatype\Datatype;
+
 /**
  * The basic Length data type
  *
@@ -32,11 +35,12 @@ namespace oat\taoQtiItem\model\qti\datatype;
  */
 class Length extends Datatype
 {
+    
     public static function validate($value)
     {
-        return (abs(floatval($value)) === is_int($value) || preg_match('/[0-9]+%/', $value));
+        return (abs($value) === is_int($value) || preg_match('/[0-9]+%/', $value));
     }
-
+    
     public static function fix($value)
     {
         return abs(intval($value));

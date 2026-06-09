@@ -42,23 +42,25 @@ define([
                         Element.unsetElement(response);
                     }
                 }
-                const parentIsInteraction = Element.isA(parent, 'interaction');
-                if (parentIsInteraction && element.qtiClass === 'gapImg') {
-                    parent.removeGapImg(element);
-                    removed = true;
-                } else if (parentIsInteraction && Element.isA(element, 'choice')) {
-                    parent.removeChoice(element);
+                if (Element.isA(parent, 'interaction')) {
+                    if (element.qtiClass === 'gapImg') {
+                        parent.removeGapImg(element);
+                    } else if (Element.isA(element, 'choice')) {
+                        parent.removeChoice(element);
+                    }
                     removed = true;
                 } else if (found.location === 'body' && _.isFunction(parent.initContainer)) {
                     if (_.isFunction(element.beforeRemove)) {
                         element.beforeRemove();
                     }
+
                     parent.getBody().removeElement(element);
                     removed = true;
                 } else if (Element.isA(parent, '_container')) {
                     if (_.isFunction(element.beforeRemove)) {
                         element.beforeRemove();
                     }
+
                     parent.removeElement(element);
                     removed = true;
                 }

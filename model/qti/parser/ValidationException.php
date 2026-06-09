@@ -28,6 +28,7 @@ use oat\oatbox\filesystem\File;
 
 class ValidationException extends common_Exception
 {
+    
     private $errors;
     private $xmlFile;
 
@@ -60,9 +61,7 @@ class ValidationException extends common_Exception
      */
     public function getReport()
     {
-        return common_report_Report::createFailure(
-            __("Malformed XML[%s]:\n%s", $this->getFilename(), implode("\n", $this->errors))
-        );
+        return common_report_Report::createFailure(__("Malformed XML[%s]:\n%s", $this->getFilename(), implode("\n", $this->errors)));
     }
 
     /**

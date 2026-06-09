@@ -31,8 +31,8 @@ use oat\taoQtiItem\model\qti\response\interactionResponseProcessing\MapResponseT
 use oat\taoQtiItem\model\qti\response\interactionResponseProcessing\MapResponsePointTemplate;
 use oat\taoQtiItem\model\qti\response\interactionResponseProcessing\Custom;
 use oat\taoQtiItem\model\qti\OutcomeDeclaration;
-use common_Exception;
-use common_exception_Error;
+use \common_Exception;
+use \common_exception_Error;
 
 /**
  * The response processing of a single interaction
@@ -52,7 +52,7 @@ abstract class InteractionResponseProcessing implements Rule
      * @var string
      */
 
-    public const SCORE_PREFIX = 'SCORE_';
+    const SCORE_PREFIX = 'SCORE_';
 
     /**
      * Short description of attribute response
@@ -83,10 +83,7 @@ abstract class InteractionResponseProcessing implements Rule
     {
         $returnValue = (string) '';
 
-        throw new common_Exception(
-            'Missing getRule implementation for ' . get_class($this),
-            ['TAOITEMS', 'QTI', 'HARD']
-        );
+        throw new common_Exception('Missing getRule implementation for ' . get_class($this), ['TAOITEMS', 'QTI', 'HARD']);
 
         return (string) $returnValue;
     }
@@ -108,19 +105,13 @@ abstract class InteractionResponseProcessing implements Rule
                 $className = 'oat\\taoQtiItem\\model\\qti\\response\\interactionResponseProcessing\\None';
                 break;
             case MatchCorrectTemplate::CLASS_ID:
-                // phpcs:disable Generic.Files.LineLength
                 $className = 'oat\\taoQtiItem\\model\\qti\\response\\interactionResponseProcessing\\MatchCorrectTemplate';
-                // phpcs:enable Generic.Files.LineLength
                 break;
             case MapResponseTemplate::CLASS_ID:
-                // phpcs:disable Generic.Files.LineLength
                 $className = 'oat\\taoQtiItem\\model\\qti\\response\\interactionResponseProcessing\\MapResponseTemplate';
-                // phpcs:enable Generic.Files.LineLength
                 break;
             case MapResponsePointTemplate::CLASS_ID:
-                // phpcs:disable Generic.Files.LineLength
                 $className = 'oat\\taoQtiItem\\model\\qti\\response\\interactionResponseProcessing\\MapResponsePointTemplate';
-                // phpcs:enable Generic.Files.LineLength
                 break;
             case Custom::CLASS_ID:
                 $className = 'oat\\taoQtiItem\\model\\qti\\response\\interactionResponseProcessing\\Custom';

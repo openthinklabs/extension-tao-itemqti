@@ -1,5 +1,4 @@
 <?php
-
 /**
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -125,24 +124,10 @@ class QtiItemServiceTest extends TestCase
         $itemContentBackup = $this->qtiService->backupContentByRdfItem($item);
 
         self::assertIsArray($itemContentBackup, 'Method must return an array.');
-        self::assertArrayHasKey(
-            'LANGUAGE_1',
-            $itemContentBackup,
-            'Result must contain old directory name for each language.'
-        );
-        self::assertArrayHasKey(
-            'LANGUAGE_2',
-            $itemContentBackup,
-            'Result must contain old directory name for each language.'
-        );
-        self::isTrue(
-            in_array('DIRECTORY_1', $itemContentBackup),
-            'Returned backup must contain all previous item content nt directories'
-        );
-        self::isTrue(
-            in_array('DIRECTORY_2', $itemContentBackup),
-            'Returned backup must contain all previous item content nt directories'
-        );
+        self::assertArrayHasKey('LANGUAGE_1', $itemContentBackup, 'Result must contain old directory name for each language.');
+        self::assertArrayHasKey('LANGUAGE_2', $itemContentBackup, 'Result must contain old directory name for each language.');
+        self::isTrue(in_array('DIRECTORY_1', $itemContentBackup), 'Returned backup must contain all previous item content nt directories');
+        self::isTrue(in_array('DIRECTORY_2', $itemContentBackup), 'Returned backup must contain all previous item content nt directories');
     }
 
     public function testRestoreContentByRdfItemThrowsException(): void
@@ -212,3 +197,4 @@ class QtiItemServiceTest extends TestCase
             ->willReturn($defaulItemDirectoryMock);
     }
 }
+

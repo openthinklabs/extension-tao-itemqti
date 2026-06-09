@@ -36,6 +36,7 @@ use oat\taoQtiItem\model\qti\interaction\GraphicInteraction;
  */
 class GraphicOrderInteraction extends GraphicInteraction
 {
+
     /**
      * the QTI tag name as defined in QTI standard
      *
@@ -45,7 +46,7 @@ class GraphicOrderInteraction extends GraphicInteraction
     protected static $qtiTagName = 'graphicOrderInteraction';
     protected static $choiceClass = 'oat\\taoQtiItem\\model\\qti\\choice\\HotspotChoice';
     protected static $baseType = 'identifier';
-
+    
     protected function getUsedAttributes()
     {
         return array_merge(

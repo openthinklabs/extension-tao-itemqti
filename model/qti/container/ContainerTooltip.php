@@ -26,7 +26,8 @@ namespace oat\taoQtiItem\model\qti\container;
 
 class ContainerTooltip extends Container
 {
-    public function getValidElementTypes(): array
+
+    public function getValidElementTypes()
     {
         return [];
     }

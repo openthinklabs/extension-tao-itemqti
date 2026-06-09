@@ -48,6 +48,10 @@ define(['lodash', 'tpl!taoQtiItem/qtiXmlRenderer/tpl/item'], function (_, tpl) {
                 defaultData.responses.push(response.render(this));
             });
             _.forEach(item.outcomes, outcome => {
+                if (!defaultData.responseProcessing && outcome.id() === 'SCORE') {
+                    //should not export the SCORE outcome when there is no response processing
+                    return;
+                }
                 defaultData.outcomes.push(outcome.render(this));
             });
             _.forEach(item.stylesheets, stylesheet => {

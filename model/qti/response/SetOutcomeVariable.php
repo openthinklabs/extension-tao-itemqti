@@ -19,7 +19,6 @@
  *
  *
  */
-
 namespace oat\taoQtiItem\model\qti\response;
 
 use oat\taoQtiItem\model\qti\response\SetOutcomeVariable;
@@ -70,7 +69,7 @@ class SetOutcomeVariable extends ResponseRule
      */
     public function __construct($identifier, Expression $expression)
     {
-
+        
         $this->outcomeVariableIdentifier    = $identifier;
         $this->expression                   = $expression;
     }
@@ -86,10 +85,9 @@ class SetOutcomeVariable extends ResponseRule
     {
         $returnValue = (string) '';
 
-
-        $returnValue = 'setOutcomeValue("' . $this->outcomeVariableIdentifier . '", ' . $this->expression->getRule()
-            . ');';
-
+        
+        $returnValue = 'setOutcomeValue("' . $this->outcomeVariableIdentifier . '", ' . $this->expression->getRule() . ');';
+        
 
         return (string) $returnValue;
     }

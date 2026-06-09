@@ -35,6 +35,7 @@ use oat\taoQtiItem\model\qti\attribute\Attribute;
  */
 class ShowHideChoice extends Attribute
 {
+    
     protected static $name = 'showHide';
     protected static $type = 'oat\\taoQtiItem\\model\\qti\\datatype\\ShowHide';
     protected static $defaultValue = null;

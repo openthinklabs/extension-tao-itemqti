@@ -34,11 +34,12 @@ use oat\taoQtiItem\model\qti\datatype\Datatype;
  */
 class QtiFloat extends Datatype
 {
+    
     public static function validate($value)
     {
         return is_float($value);
     }
-
+    
     public static function fix($value)
     {
         return floatval($value);

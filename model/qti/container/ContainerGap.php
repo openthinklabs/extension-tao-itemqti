@@ -15,20 +15,16 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2013-2022 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
+ * Copyright (c) 2013 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
+ *
+ *
  */
 
 namespace oat\taoQtiItem\model\qti\container;
 
+use oat\taoQtiItem\model\qti\container\Container;
 use oat\taoQtiItem\model\qti\Element;
 use oat\taoQtiItem\model\qti\choice\Gap;
-use oat\taoQtiItem\model\qti\feedback\Feedback;
-use oat\taoQtiItem\model\qti\Figure;
-use oat\taoQtiItem\model\qti\Img;
-use oat\taoQtiItem\model\qti\Math;
-use oat\taoQtiItem\model\qti\QtiObject;
-use oat\taoQtiItem\model\qti\Table;
-use oat\taoQtiItem\model\qti\Tooltip;
 
 /**
  * The QTI_Container object represents the generic element container
@@ -40,20 +36,24 @@ use oat\taoQtiItem\model\qti\Tooltip;
  */
 class ContainerGap extends Container
 {
+
     /**
-     * @inheritDoc
+     * return the list of available element classes
+     *
+     * @access public
+     * @author Sam, <sam@taotesting.com>
+     * @return array
      */
-    public function getValidElementTypes(): array
+    public function getValidElementTypes()
     {
         return [
-            Img::class,
-            Math::class,
-            Table::class,
-            Tooltip::class,
-            Feedback::class,
-            QtiObject::class,
-            Gap::class,
-            Figure::class,
+            'oat\\taoQtiItem\\model\\qti\\Img',
+            'oat\\taoQtiItem\\model\\qti\\Math',
+            'oat\\taoQtiItem\\model\\qti\\Table',
+            'oat\\taoQtiItem\\model\\qti\\Tooltip',
+            'oat\\taoQtiItem\\model\\qti\\feedback\\Feedback',
+            \oat\taoQtiItem\model\qti\QtiObject::class,
+            'oat\\taoQtiItem\\model\\qti\\choice\\Gap'
         ];
     }
 

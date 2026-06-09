@@ -35,6 +35,7 @@ use oat\taoQtiItem\model\qti\attribute\Attribute;
  */
 class MinPlays extends Attribute
 {
+    
     protected static $name = 'minPlays';
     protected static $type = 'oat\\taoQtiItem\\model\\qti\\datatype\\QtiInteger';
     protected static $defaultValue = 0;

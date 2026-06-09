@@ -35,6 +35,7 @@ use oat\taoQtiItem\model\qti\attribute\Attribute;
  */
 class TemplateIdentifier extends Attribute
 {
+    
     protected static $name = 'templateIdentifier';
     protected static $type = 'oat\\taoQtiItem\\model\\qti\\datatype\\Identifier';
     protected static $defaultValue = null;

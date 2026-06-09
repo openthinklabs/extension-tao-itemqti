@@ -46,17 +46,10 @@ define([
         url: 'undefined/tao/Languages/index',
         responseText: {
             "success": true,
-            "data": [{
-                "uri":"http:\/\/www.tao.lu\/ontologies\/tao.rdf#langar-arb",
-                "code":"ar-arb",
-                "label":"arabic",
-                "orientation":"rtl"
-            },{
-                "uri":"http:\/\/www.tao.lu\/ontologies\/tao.rdf#langckb-ir",
-                "code":"ckb-ir",
-                "label":"kurdish (iran)",
-                "orientation":"rtl"
-            }]
+            "data": {
+                "en-GB":"British English",
+                "en-US":"English"
+            }
         },
         status: 200
     }]);

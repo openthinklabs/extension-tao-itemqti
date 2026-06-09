@@ -36,6 +36,7 @@ use oat\taoQtiItem\model\qti\interaction\Interaction;
  */
 abstract class ContainerInteractive extends Container
 {
+    
     public function afterElementSet(Element $qtiElement)
     {
         parent::afterElementSet($qtiElement);
@@ -49,7 +50,7 @@ abstract class ContainerInteractive extends Container
             }
         }
     }
-
+    
     public function afterElementRemove(Element $qtiElement)
     {
         parent::afterElementRemove($qtiElement);

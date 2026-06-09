@@ -63,7 +63,7 @@ define([
                 control,
                 $controlsArea = this.$popupControls;
 
-            _.forEach(this.config.popupControls, function(isActive, controlId) {
+            _.each(this.config.popupControls, function(isActive, controlId) {
                 control = popupControlsPresets[controlId];
 
                 if (isActive && control) {

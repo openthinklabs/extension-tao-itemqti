@@ -38,7 +38,7 @@ define([
             data = options.data || {};
 
         var $placeholder = $('<div>', {'id' : 'qti-block-element-placeholder', 'class' : 'qti-droppable-block-hover'}),
-            marginWidth = parseFloat($el.find('[class^="col-"], [class*=" col-"]').last().css('margin-left')),
+        marginWidth = parseFloat($el.find('[class^="col-"], [class*=" col-"]').last().css('margin-left')),
             isEmpty = ($el.children('.grid-row').length === 0);
 
         //add dropping class (used to fix col-*:first margin issue);
@@ -50,7 +50,8 @@ define([
             $el.append(_getNewRow().append(_getNewCol().addClass('col-12')));
 
         }else{
-            $el.children('.grid-row').each(function(){
+
+            $el.find('.grid-row').each(function(){
 
                 var $row = $(this), cols = [];
 
@@ -160,7 +161,7 @@ define([
                     }else{
                         $newCol.attr('class', 'new-col col-' + distributedUnits.middle);
                     }
-                    _.forEach(distributedUnits.cols, function(col){
+                    _.each(distributedUnits.cols, function(col){
                         col.elt.attr('class', 'col-' + col.refactoredUnits);
                     });
                 }

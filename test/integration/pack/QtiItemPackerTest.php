@@ -18,11 +18,10 @@
  * Copyright (c) 2015 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
  *
  */
-
 namespace oat\taoItems\test\pack;
 
 use common_Exception;
-use core_kernel_classes_Resource;
+use \core_kernel_classes_Resource;
 use oat\oatbox\filesystem\Directory;
 use oat\oatbox\filesystem\FileSystemService;
 use oat\oatbox\service\ServiceManager;
@@ -39,6 +38,7 @@ use oat\taoQtiItem\model\qti\Parser as QtiParser;
  */
 class QtiItemPackerTest extends TaoPhpUnitTestRunner
 {
+
     public function setUp(): void
     {
         \common_ext_ExtensionsManager::singleton()->getExtensionById('taoQtiItem');
@@ -429,15 +429,9 @@ class QtiItemPackerTest extends TaoPhpUnitTestRunner
         $css = $itemPack->getAssets('css');
 
         $this->assertStringStartsWith('data:text/css;', current($css), 'Have appropriate prefix');
-        $this->assertRegExp(
-            '/icon-checkbox/',
-            base64_decode(str_replace('data:text/css;base64,', '', current($css))),
-            'Correctly decoded back'
-        );
+        $this->assertRegExp('/icon-checkbox/', base64_decode(str_replace('data:text/css;base64,', '', current($css))), 'Correctly decoded back');
 
         $itemPackerMock->setNestedResourcesInclusion(true);
-
-        $publicDirectory = $this->getDirectoryStorage();
 
         $itemPack = $itemPackerMock->packItem(new core_kernel_classes_Resource('foo'), '', $publicDirectory);
     }
@@ -492,11 +486,7 @@ class QtiItemPackerTest extends TaoPhpUnitTestRunner
 
         $video = $itemPack->getAssets('video');
         $this->assertStringStartsWith('data:video/mp4;', $video['sample.mp4'], 'Encoded as it is local resource');
-        $this->assertStringStartsWith(
-            'https://',
-            $video['https://www.youtube.com/watch?v=J1c2KzJbcGA'],
-            'Is external resource'
-        );
+        $this->assertStringStartsWith('https://', $video['https://www.youtube.com/watch?v=J1c2KzJbcGA'], 'Is external resource');
     }
 
     /**

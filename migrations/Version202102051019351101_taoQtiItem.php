@@ -14,6 +14,7 @@ use oat\taoQtiItem\model\QtiCreatorClientConfigRegistry;
  */
 final class Version202102051019351101_taoQtiItem extends AbstractMigration
 {
+
     public function getDescription(): string
     {
         return 'Actualize the plugins is client_lib_config_registry.conf';

@@ -41,6 +41,8 @@ class CsvItemImporter implements
     ServiceLocatorAwareInterface,
     TaskParameterProviderInterface
 {
+    private const DEFAULT_CSV_SEPARATOR = ';';
+
     use LoggerAwareTrait;
     use OntologyAwareTrait;
     use PhpSerializeStateless;
@@ -48,8 +50,6 @@ class CsvItemImporter implements
     use ImportHandlerHelperTrait {
         getTaskParameters as getDefaultTaskParameters;
     }
-
-    private const DEFAULT_CSV_SEPARATOR = ';';
 
     /** @var ServerRequestInterface|null */
     private $request;

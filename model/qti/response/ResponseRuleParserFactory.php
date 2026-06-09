@@ -28,7 +28,7 @@ use oat\taoQtiItem\model\qti\expression\ExpressionParserFactory;
 use oat\taoQtiItem\model\qti\response\SetOutcomeVariable;
 use oat\taoQtiItem\model\qti\exception\ParsingException;
 use oat\taoQtiItem\model\qti\response\ResponseCondition;
-use SimpleXMLElement;
+use \SimpleXMLElement;
 
 /**
  * Short description of class
@@ -40,6 +40,7 @@ use SimpleXMLElement;
  */
 class ResponseRuleParserFactory
 {
+
     /**
      * Short description of method buildResponseRule
      *
@@ -86,7 +87,7 @@ class ResponseRuleParserFactory
     private static function buildResponseCondition(SimpleXMLElement $data)
     {
         $responseCondition = new ResponseCondition();
-
+        
         foreach ($data->children() as $child) {
             switch ($child->getName()) {
                 case 'responseIf':
@@ -95,20 +96,20 @@ class ResponseRuleParserFactory
                     foreach ($child->children() as $subchild) {
                         $subchildren[] = $subchild;
                     }
-
+        
                     // first node is condition
                     $conditionNode = array_shift($subchildren);
                     $condition = ExpressionParserFactory::build($conditionNode);
-
+                    
                     // all the other nodes are action
                     $responseRules = [];
                     foreach ($subchildren as $responseRule) {
                         $responseRules[] = self::buildResponseRule($responseRule);
                     }
                     $responseCondition->addResponseIf($condition, $responseRules);
-
+                            
                     break;
-
+                    
                 case 'responseElse':
                     $responseRules = [];
                     foreach ($child->children() as $responseRule) {
@@ -116,7 +117,7 @@ class ResponseRuleParserFactory
                     }
                     $responseCondition->setResponseElse($responseRules);
                     break;
-
+                    
                 default:
                     throw new ParsingException('unknown node in ResponseCondition');
             }

@@ -136,7 +136,7 @@ define([
                 formatedRes = {base : {directedPair : pair}};
             }else{
                 formatedRes = {list : {directedPair : []}};
-                _.forEach(response, function(pairString){
+                _.each(response, function(pairString){
                     var pair = pairString.split(' ');
                     formatedRes.list.directedPair.push(pair);
                 });
@@ -148,7 +148,7 @@ define([
             var res = [];
 
             if(formatedResponse.list && formatedResponse.list.directedPair){
-                _.forEach(formatedResponse.list.directedPair, function(pair){
+                _.each(formatedResponse.list.directedPair, function(pair){
                     res.push(pair.join(' '));
                 });
             }else if(formatedResponse.base && formatedResponse.base.directedPair){

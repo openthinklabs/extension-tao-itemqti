@@ -27,13 +27,13 @@ use oat\taoQtiItem\model\qti\container\Container;
 
 class ElementMock extends Container
 {
+
     public function __construct()
     {
     }
 
-    public function getValidElementTypes(): array
+    function getValidElementTypes()
     {
-        return [];
     }
 
     public function getUsedAttributes()

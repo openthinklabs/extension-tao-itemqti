@@ -15,10 +15,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2008-2010 (original work) Deutsche Institut für Internationale Pädagogische Forschung
- *                         (under the project TAO-TRANSFER);
- *               2009-2012 (update and modification) Public Research Centre Henri Tudor
- *                         (under the project TAO-SUSTAIN & TAO-DEV);
+ * Copyright (c) 2008-2010 (original work) Deutsche Institut für Internationale Pädagogische Forschung (under the project TAO-TRANSFER);
+ *               2009-2012 (update and modification) Public Research Centre Henri Tudor (under the project TAO-SUSTAIN & TAO-DEV);
+ *
  */
 
 namespace oat\taoQtiItem\model\Export;
@@ -27,7 +26,7 @@ use common_Exception;
 use common_exception_UserReadableException;
 use core_kernel_classes_Class;
 use core_kernel_classes_Resource;
-use oat\oatbox\filesystem\FilesystemException;
+use League\Flysystem\FileNotFoundException;
 use oat\tao\model\export\ExportElementException;
 use oat\taoQtiItem\model\ItemModel;
 use oat\taoQtiItem\model\qti\Service;
@@ -83,8 +82,7 @@ abstract class ExportForm extends tao_helpers_form_FormContainer
 
         $exportElt = tao_helpers_form_FormFactory::getElement('export', 'Free');
         $exportElt->setValue(
-            '<a href="#" class="form-submitter btn-success small"><span class="icon-export"></span> '
-                . __('Export') . '</a>'
+            '<a href="#" class="form-submitter btn-success small"><span class="icon-export"></span> ' . __('Export') . '</a>'
         );
 
         $this->form->setActions([$exportElt], 'bottom');
@@ -202,7 +200,7 @@ abstract class ExportForm extends tao_helpers_form_FormContainer
     {
         try {
             $xml = Service::singleton()->getXmlByRdfItem($item);
-        } catch (FilesystemException $e) {
+        } catch (FileNotFoundException $e) {
         }
 
         if (empty($xml)) {

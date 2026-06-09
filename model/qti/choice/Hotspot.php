@@ -35,6 +35,7 @@ use oat\taoQtiItem\model\qti\choice\Choice;
  */
 abstract class Hotspot extends Choice
 {
+
     public function setContent($content)
     {
         $this->setAttribute('shape', $content);

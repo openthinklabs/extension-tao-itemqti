@@ -64,9 +64,7 @@ define([
             if (!outcome) {
                 outcome = item.createOutcomeDeclaration({
                     cardinality: 'single',
-                    baseType: 'float',
-                    normalMinimum: 0.0,
-                    normalMaximum: 0.0
+                    baseType: 'float'
                 });
 
                 buildIdentifier
@@ -107,7 +105,6 @@ define([
 
             //se the default value for the score default value
             response.mappingAttributes.defaultValue = 0;
-            response.mappingAttributes.lowerBound = 0;
 
             //set renderer
             renderer = this.getRenderer();

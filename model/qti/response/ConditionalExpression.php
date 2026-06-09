@@ -19,7 +19,6 @@
  *
  *
  */
-
 namespace oat\taoQtiItem\model\qti\response;
 
 use oat\taoQtiItem\model\qti\response\ConditionalExpression;
@@ -36,6 +35,9 @@ use oat\taoQtiItem\model\qti\expression\Expression;
  */
 class ConditionalExpression implements Rule
 {
+    // --- ASSOCIATIONS ---
+    // generateAssociationEnd :     // generateAssociationEnd :     // generateAssociationEnd :     // generateAssociationEnd :
+
     // --- ATTRIBUTES ---
 
     /**
@@ -67,15 +69,15 @@ class ConditionalExpression implements Rule
     {
         $returnValue = (string) '';
 
-
-
+        
+        
         $returnValue = 'if(' . $this->getCondition()->getRule() . ') {';
         foreach ($this->getActions() as $actions) {
             $returnValue .= $actions->getRule();
         }
         $returnValue .= '}';
-
-
+        
+        
 
         return (string) $returnValue;
     }
@@ -91,7 +93,7 @@ class ConditionalExpression implements Rule
      */
     public function __construct(Expression $condition, $actions)
     {
-
+        
         $this->condition    = $condition;
         $this->actions      = $actions;
     }
@@ -107,9 +109,9 @@ class ConditionalExpression implements Rule
     {
         $returnValue = null;
 
-
+        
         $returnValue = $this->condition;
-
+        
 
         return $returnValue;
     }
@@ -125,9 +127,9 @@ class ConditionalExpression implements Rule
     {
         $returnValue = [];
 
-
+        
         $returnValue = $this->actions;
-
+        
 
         return (array) $returnValue;
     }

@@ -36,6 +36,7 @@ use oat\taoQtiItem\model\qti\interaction\InlineInteraction;
  */
 class TextEntryInteraction extends InlineInteraction
 {
+
     /**
      * the QTI tag name as defined in QTI standard
      *
@@ -62,7 +63,7 @@ class TextEntryInteraction extends InlineInteraction
 
     public function getBaseType()
     {
-
+        
         $returnValue = parent::getBaseType();
 
         $response = $this->getResponse();
@@ -77,7 +78,7 @@ class TextEntryInteraction extends InlineInteraction
                 $returnValue = $baseType;
             }
         }
-
+        
         return $returnValue;
     }
 }

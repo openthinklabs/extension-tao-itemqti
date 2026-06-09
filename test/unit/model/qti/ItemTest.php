@@ -17,30 +17,16 @@
  *
  * Copyright (c) 2022 (original work) Open Assessment Technologies SA;
  */
-
 declare(strict_types=1);
 
-namespace oat\taoQtiItem\test\unit\model\qti;
+namespace oat\taoQtiItem\test\unit\mode\qti;
 
-use common_ext_Extension;
-use common_ext_ExtensionsManager;
-use League\Flysystem\FilesystemException;
-use League\Flysystem\Local\LocalFilesystemAdapter;
-use oat\generis\test\ServiceManagerMockTrait;
-use oat\oatbox\filesystem\FileSystemService;
-use oat\oatbox\service\ServiceManager;
-use oat\tao\model\service\ApplicationService;
+use oat\generis\test\TestCase;
 use oat\taoQtiItem\model\qti\Item;
-use PHPUnit\Framework\TestCase;
-use League\Flysystem\Filesystem;
 
 class ItemTest extends TestCase
 {
-    use ServiceManagerMockTrait;
-
     private const PRODUCT_NAME = 'TAO';
-
-    private FileSystemService $fileSystemService;
 
     protected function setUp(): void
     {
@@ -49,34 +35,36 @@ class ItemTest extends TestCase
         if (!defined('PRODUCT_NAME')) {
             define('PRODUCT_NAME', self::PRODUCT_NAME);
         }
-
-        $commonExtensionMock = $this->createMock(common_ext_Extension::class);
-        $commonExtensionMock
-            ->method('getDir')
-            ->willReturn(ROOT_PATH . DIRECTORY_SEPARATOR . 'taoQtiItem' . DIRECTORY_SEPARATOR);
-
-        $extensionsManagerMock = $this->createMock(common_ext_ExtensionsManager::class);
-        $extensionsManagerMock
-            ->method('getExtensionById')
-            ->willReturn($commonExtensionMock);
-
-        $applicationServiceMock = $this->createMock(ApplicationService::class);
-
-        $sm = $this->getServiceManagerMock([
-            ApplicationService::SERVICE_ID => $applicationServiceMock,
-            common_ext_ExtensionsManager::class => $extensionsManagerMock
-        ]);
-
-        ServiceManager::setServiceManager($sm);
+        if (!defined('ROOT_URL')) {
+            define('ROOT_URL', __DIR__ . '/../../../../../');
+        }
+        if (!defined('CONFIG_PATH')) {
+            define('CONFIG_PATH', ROOT_URL . 'config/');
+        }
+        if (!defined('EXTENSION_PATH')) {
+            define('EXTENSION_PATH', ROOT_URL);
+        }
     }
 
-    /**
-     * Testing toQTI() method on Item class
-     * @return void
-     */
     public function testToQTI(): void
     {
-        $expectedItemQti = $this->readSampleFile('testToQti_expectedItemQti.xml');
+        $expectedItemQti = <<<ITEM_QTI
+<?xml version="1.0" encoding="UTF-8"?><assessmentItem
+        xsi:schemaLocation=""
+     identifier="Item_1" title="" label="" adaptive="false" timeDependent="false" toolName="TAO" toolVersion="">
+
+    
+    
+    
+    <itemBody >
+	    </itemBody>
+
+    
+    
+    </assessmentItem>
+
+ITEM_QTI;
+
 
         $item = new Item();
         $itemQti = $this->removeToolVersionAttribute($item->toQTI());
@@ -84,18 +72,30 @@ class ItemTest extends TestCase
         self::assertEquals($expectedItemQti, $itemQti);
     }
 
-    /**
-     * Testing toQTI() method on Item class with attribute dir=rtl
-     * @return void
-     * @throws \oat\taoQtiItem\model\qti\exception\QtiModelException
-     */
     public function testToQTIWithDirAttributeInItemBody(): void
     {
-        $expectedItemQti = $this->readSampleFile('testToQTIWithDirAttributeInItemBody_expectedItemQti.xml');
+        $expectedItemQti = <<<ITEM_QTI
+<?xml version="1.0" encoding="UTF-8"?><assessmentItem
+        xsi:schemaLocation=""
+     identifier="Item_1" title="" label="" adaptive="false" timeDependent="false" toolName="TAO" toolVersion="">
+
+    
+    
+    
+    <itemBody dir="rtl">
+	    </itemBody>
+
+    
+    
+    </assessmentItem>
+
+ITEM_QTI;
+
 
         $item = new Item();
         $item->getBody()->setAttribute('dir', 'rtl');
         $itemQti = $this->removeToolVersionAttribute($item->toQTI());
+
 
         self::assertEquals($expectedItemQti, $itemQti);
     }
@@ -107,22 +107,6 @@ class ItemTest extends TestCase
      */
     private function removeToolVersionAttribute(string $itemQti): string
     {
-        return preg_replace('/toolVersion="[0-9]{4}\.[0-9]{2}"/u', 'toolVersion=""', $itemQti);
-    }
-
-    /**
-     * @param string $name
-     * @return string
-     * @throws FilesystemException
-     */
-    private function readSampleFile(string $name): string
-    {
-        $adapter = new LocalFilesystemAdapter(
-            dirname(__DIR__, 2) . '/samples/model/qti/item'
-        );
-
-        $filesystem = new Filesystem($adapter);
-
-        return $filesystem->read($name);
+       return preg_replace('/toolVersion="[0-9]{4}\.[0-9]{2}"/u', 'toolVersion=""', $itemQti);
     }
 }

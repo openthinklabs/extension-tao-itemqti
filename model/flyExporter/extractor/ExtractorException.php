@@ -24,4 +24,5 @@ namespace oat\taoQtiItem\model\flyExporter\extractor;
 
 class ExtractorException extends \Exception
 {
+
 }

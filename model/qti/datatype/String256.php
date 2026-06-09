@@ -35,11 +35,12 @@ use oat\taoQtiItem\model\qti\datatype\Datatype;
  */
 class String256 extends Datatype
 {
+    
     public static function validate($value)
     {
         return is_string($value) && (strlen($value) <= 256);
     }
-
+    
     public static function fix($value)
     {
         return substr((string)$value, 0, 253) . '...';

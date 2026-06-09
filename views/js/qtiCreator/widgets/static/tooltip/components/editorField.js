@@ -75,10 +75,6 @@ define([
                             {
                                 name: 'basicstyles',
                                 items: ['Bold', 'Italic', 'Subscript', 'Superscript']
-                            },
-                            {
-                                name: 'language',
-                                items: ['Language']
                             }
                         ],
                         autofocus: false,

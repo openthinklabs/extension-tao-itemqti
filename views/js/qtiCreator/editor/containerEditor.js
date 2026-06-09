@@ -46,8 +46,6 @@ define([
         qtiMedia : false
     };
 
-    var qtiClasses = ['img', 'object', 'math', 'include', 'printedVariable', '_container', '_tooltip', 'figure', 'figcaption', 'table'];
-
     event.initElementToWidgetListeners();
 
     function parser($container){
@@ -81,15 +79,11 @@ define([
      * @param {String} [options.placeholder] - the placeholder text of the container editor when
      * @param {Array} [options.toolbar] - the ck toolbar
      * @param {Boolean} [options.qtiMedia=false] - allow insert media object
-     * @param {Boolean?} [options.qtiInclude] - allow insert Include object
-     * @param {Boolean?} [options.mathJax]
-     * @param {Boolean?} [options.qtiImage] - allow insert image object
      * @param {Object} [options.areaBroker] - allow to set a custom areaBroker on the renderer
      * @param {String} [options.removePlugins] - a coma-separated plugin list that should not be loaded
      * @param {Object} [options.metadata] - some metadata to attach to the root element (ex: { myDataName: 'myDataValue' })
      * @param {Boolean} [options.resetRenderer] - force resetting the renderer
      * @param {Boolean} [options.autofocus] - automatically focus the editor
-     * @param {Boolean?} [options.flushDeletingWidgetsOnDestroy] - before editor destroy, remove widgets which are waiting for delete confirmation
      * @returns {undefined}
      */
     function create($container, options){
@@ -114,7 +108,8 @@ define([
 
             var item,
                 containerEditors,
-                renderer;
+                renderer,
+                qtiClasses = ['img', 'object', 'math', 'include', 'printedVariable', '_container', '_tooltip'];
 
             //create a new container object
             var container = new Container();
@@ -130,7 +125,7 @@ define([
             container.setRootElement(item);
 
             if (options.metadata) {
-                _.forEach(options.metadata, function (value, name) {
+                _.each(options.metadata, function (value, name) {
                     item.data(name, value);
                 });
             }
@@ -154,7 +149,7 @@ define([
                 container.postRender();
 
                 //resolve xinclude
-                _.forEach(container.getComposingElements(), function(element){
+                _.each(container.getComposingElements(), function(element){
                     if(element.qtiClass === 'include'){
                         xincludeRenderer.render(element.data('widget'), baseUrl);
                     }
@@ -164,16 +159,11 @@ define([
                 buildEditor($container, container, {
                     placeholder : options.placeholder || undefined,
                     toolbar : options.toolbar || undefined,
+                    qtiMedia : options.qtiMedia,
                     highlight : options.highlight,
                     removePlugins : options.removePlugins || '',
                     areaBroker : options.areaBroker,
-                    autofocus: options.autofocus || false,
-                    flushDeletingWidgetsOnDestroy: options.flushDeletingWidgetsOnDestroy,
-                    qtiMedia: options.qtiMedia,
-                    qtiInclude: options.qtiInclude,
-                    mathJax: options.mathJax,
-                    qtiImage: options.qtiImage
-
+                    autofocus : options.autofocus || false
                 });
 
                 $container
@@ -206,7 +196,7 @@ define([
         return new Promise(function (resolve) {
             if (container) {
                 $(document).off('.' + container.serial);
-                commonRenderer.load(qtiClasses, function(){
+                commonRenderer.load(['img', 'object', 'math', 'include', '_container', 'printedVariable', '_tooltip'], function(){
                     // update container editor body with sanitized value to prevent xss
                     const newBody = contentHelper.getContent($container.find('.container-editor'));
                     if (newBody) {

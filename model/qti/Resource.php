@@ -30,6 +30,7 @@ namespace oat\taoQtiItem\model\qti;
  */
 class Resource
 {
+
     /**
      * defines the list of known authorized type of resources
      *
@@ -40,7 +41,7 @@ class Resource
         'controlfile/apip_xmlv1p0',
         'associatedcontent/apip_xmlv1p0/learning-application-resource'
     ];
-
+    
     /**
      * defines the list of known authorized type of qti test
      *
@@ -50,10 +51,9 @@ class Resource
         'imsqti_apiptestroot_xmlv2p1',
         'imsqti_test_xmlv2p1',
         'imsqti_test_xmlv2p2',
-        'imsqti_assessment_xmlv2p1',
-        'imsqti_test_xmlv3p0'
+        'imsqti_assessment_xmlv2p1'
     ];
-
+    
     /**
      * defines the list of known authorized type of qti item
      *
@@ -66,7 +66,6 @@ class Resource
         'imsqti_apipitemroot_xmlv2p1',
         'imsqti_apipitem_xmlv2p1',
         'imsqti_apipitem_xmlv2p2',
-        'imsqti_item_xmlv3p0'
     ];
 
     /**
@@ -104,7 +103,7 @@ class Resource
      * @var array
      */
     protected $dependencies = [];
-
+    
     /**
      * Create a new QTI Resource object.
      *
@@ -127,9 +126,7 @@ class Resource
      */
     public static function isAllowed($type)
     {
-        return (!empty($type) && (in_array($type, self::$allowedTypes)))
-            || self::isAssessmentItem($type)
-            || self::isAssessmentTest($type);
+        return (!empty($type) && (in_array($type, self::$allowedTypes))) || self::isAssessmentItem($type) || self::isAssessmentTest($type);
     }
 
     /**
@@ -182,7 +179,7 @@ class Resource
     {
         return $this->identifier;
     }
-
+    
     public function setIdentifier($identifier)
     {
         $this->identifier = $identifier;
@@ -197,7 +194,7 @@ class Resource
     {
         return (string) $this->file;
     }
-
+    
     /**
      * Get the qti resource type:
      *
@@ -207,7 +204,7 @@ class Resource
     {
         return (string) $this->type;
     }
-
+    
     /**
      * Set the list of auxiliary files bound to this resource.
      *
@@ -247,7 +244,7 @@ class Resource
     {
         $this->dependencies = $dependencies;
     }
-
+    
     /**
      * Add a dependency to this resource.
      *
@@ -257,7 +254,7 @@ class Resource
     {
         $this->dependencies[] = $dependency;
     }
-
+    
     /**
      * Get the list of dependencies to this resource.
      *

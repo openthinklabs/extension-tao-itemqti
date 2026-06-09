@@ -35,11 +35,12 @@ use oat\taoQtiItem\model\qti\datatype\Datatype;
  */
 class Generic extends Datatype
 {
+    
     public static function validate($value)
     {
         return true;
     }
-
+    
     public static function fix($value)
     {
         return $value->__toString();

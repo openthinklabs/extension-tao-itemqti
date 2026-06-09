@@ -63,10 +63,7 @@ class ResponseDeclarationTest extends TaoPhpUnitTestRunner
         $qtiParser = new Parser($file);
         $item = $qtiParser->load();
 
-        $this->assertXmlStringEqualsXmlString(
-            $this->normalizeXml(file_get_contents($file)),
-            $this->normalizeXml($item->toXML())
-        );
+        $this->assertXmlStringEqualsXmlString($this->normalizeXml(file_get_contents($file)), $this->normalizeXml($item->toXML()));
     }
 
     /**

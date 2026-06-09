@@ -21,15 +21,13 @@ define(['module', 'i18n'], function (module, __) {
 
     const qtiIdPattern = module.config().qtiIdPattern || '/^[a-zA-Z_]{1}[a-zA-Z0-9_.-]*$/u';
     const [, patternContent, flags] = qtiIdPattern.match(/^\/(.+)\/(\w*)$/);
-    const defaultInvalidQtiIdMessage = 'Identifiers must start with a letter or an underscore and contain only letters, numbers, dots, underscores ( _ ), or hyphens ( - ).';
-    const message = module.config().invalidQtiIdMessage || defaultInvalidQtiIdMessage;
-    const invalidQtiIdMessage = __(message);
-    const isDisabled = module.config().isDisabled || false;
 
+    const invalidQtiIdMessage = __(
+        'Identifiers must start with a letter or an underscore and contain only letters, numbers, dots, underscores ( _ ), or hyphens ( - ).'
+    );
     return {
         pattern: new RegExp(patternContent, flags),
         invalidQtiIdMessage,
-        maxQtiIdLength: 32,
-        isDisabled
+        maxQtiIdLength: 32
     };
 });
